@@ -1,0 +1,39 @@
+/*
+ * Copyright (C) 2014 Stefan Kristiansson, stefan.kristiansson@saunalahti.fi
+ *
+ * This file is licensed under the terms of the GNU General Public License
+ * version 2.  This program is licensed "as is" without any warranty of any
+ * kind, whether express or implied.
+ */
+
+#ifndef __ASM_ECO32_MMU_CONTEXT_H
+#define __ASM_ECO32_MMU_CONTEXT_H
+
+#include <asm-generic/mm_hooks.h>
+
+#define init_new_context(tsk,mm)	0 /* SJK FIXME? */
+static inline  void switch_mm(struct mm_struct *prev, struct mm_struct *next,
+			      struct task_struct *tsk)
+{
+	BUG(); /* SJK TODO */
+}
+
+#define deactivate_mm(tsk, mm)	do { } while (0)
+
+#define activate_mm(prev, next) switch_mm((prev), (next), NULL)
+
+/* current active pgd - this is similar to other processors pgd
+ * registers like cr3 on the i386
+ */
+extern volatile pgd_t *current_pgd;   /* defined in arch/eco32/mm/fault.c */
+
+static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+{
+}
+
+static inline void destroy_context(struct mm_struct *mm)
+{
+	BUG(); /* SJK TODO */
+}
+
+#endif

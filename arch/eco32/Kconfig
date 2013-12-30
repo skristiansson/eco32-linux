@@ -1,0 +1,99 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+
+config ECO32
+	def_bool y
+	select OF
+	select OF_EARLY_FLATTREE
+	select IRQ_DOMAIN
+	select HAVE_MEMBLOCK
+	select ARCH_REQUIRE_GPIOLIB
+        select HAVE_ARCH_TRACEHOOK
+	select GENERIC_IRQ_CHIP
+	select GENERIC_IRQ_PROBE
+	select GENERIC_IRQ_SHOW
+	select GENERIC_IOMAP
+	select GENERIC_CPU_DEVICES
+	select GENERIC_ATOMIC64
+	select GENERIC_CLOCKEVENTS
+	select GENERIC_STRNCPY_FROM_USER
+	select GENERIC_STRNLEN_USER
+	select MODULES_USE_ELF_RELA
+	select HAVE_DEBUG_STACKOVERFLOW
+	select SYS_HAS_EARLY_PRINTK
+
+config MMU
+	def_bool y
+
+config HAVE_DMA_ATTRS
+	def_bool y
+
+config UID16
+	def_bool y
+
+config RWSEM_GENERIC_SPINLOCK
+	def_bool y
+
+config RWSEM_XCHGADD_ALGORITHM
+	def_bool n
+
+config GENERIC_HWEIGHT
+	def_bool y
+
+config NO_IOPORT
+	def_bool y
+
+config TRACE_IRQFLAGS_SUPPORT
+        def_bool y
+
+# For now, use generic checksum functions
+#These can be reimplemented in assembly later if so inclined
+config GENERIC_CSUM
+        def_bool y
+
+source "init/Kconfig"
+
+source "kernel/Kconfig.freezer"
+
+menu "Processor type and features"
+
+config ECO32_BUILTIN_DTB
+        string "Builtin DTB"
+        default ""
+
+source kernel/Kconfig.hz
+source kernel/Kconfig.preempt
+source "mm/Kconfig"
+
+config CMDLINE
+        string "Default kernel command string"
+        default ""
+        help
+          On some architectures there is currently no way for the boot loader
+          to pass arguments to the kernel. For these architectures, you should
+          supply some command-line options at build time by entering them
+          here.
+
+endmenu
+
+menu "Executable file formats"
+
+source "fs/Kconfig.binfmt"
+
+endmenu
+
+source "net/Kconfig"
+
+source "drivers/Kconfig"
+
+source "fs/Kconfig"
+
+source "security/Kconfig"
+
+source "crypto/Kconfig"
+
+source "lib/Kconfig"
+
+source "arch/eco32/Kconfig.debug"
