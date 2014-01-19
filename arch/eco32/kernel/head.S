@@ -8,6 +8,7 @@
 
 #include <linux/init.h>
 #include <asm/page.h>
+#include <asm/pgtable.h>
 #include <asm/asm-offsets.h>
 #include <asm/thread_info.h>
 #include <asm/spr.h>
@@ -20,20 +21,35 @@ exception:
 	j	exception
 
 tlbmiss:
-	subi	$29,$29,12
-	stw	$4,$29,0
-	stw	$5,$29,4
-	stw	$6,$29,8
+	/* load current_pgd, we use the asm temp reg ($1) as storage */
+	ori	$1,$0,current_pgd
+	ldw	$1,$1,0
+	/*
+	 * $3 (function return high value) isn't used by gcc, so we
+	 * can "safely" use that as a temp reg.
+	 */
+	mvfs	$3,SPR_TLB_ENTRY_HIGH	/* virtual address */
+	slri	$3,$3,PGDIR_SHIFT
+	slli	$3,$3,2			/* word address */
+	/* add offset to pgd */
+	add	$1,$1,$3
+	ldw	$1,$1,0
+	beq	$1,$0,_fault
 
-	ori	$4,$0,current_pgd
-	ldw	$4,$4,0
+	addi	$3,$0,PAGE_MASK
+	and	$1,$1,$3
+	mvfs	$3,SPR_TLB_ENTRY_HIGH
+	slri	$3,$3,PAGE_SHIFT
+	andi	$3,$3,PTRS_PER_PTE-1	/* 1024-1 = 0x3ff */
+	slli	$3,$3,2			/* word address */
+	add	$1,$1,$3
+	ldw	$1,$1,0			/* pte */
+	mvts	$1,SPR_TLB_ENTRY_LOW
+	tbwi				/* write out to tlb */
+	rfx
 
-	stw	$4,$29,0
-	stw	$5,$29,4
-	stw	$6,$29,8
-	addi	$29,$29,12
-
-	j	. /* SJK TODO */
+_fault:
+	j	page_fault_handler
 
 	__HEAD
 	.global _start
