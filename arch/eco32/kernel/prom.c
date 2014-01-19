@@ -23,6 +23,8 @@ void __init early_init_dt_add_memory_arch(u64 base, u64 size)
 
 void __init early_init_devtree(void *params)
 {
+
+	/* Note: https://lkml.org/lkml/2013/11/19/157 */
 	if (!params)
 		params = &__dtb_start;
 	pr_info("FDT at %p\n", params);
