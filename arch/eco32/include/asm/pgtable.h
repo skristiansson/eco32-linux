@@ -63,10 +63,10 @@ extern void paging_init(void);
 
 /* Hardware bit-defines*/
 #define _PAGE_VALID	(1 << 0)	/* Valid */
+#define _PAGE_PRESENT	(1 << 0)	/* Present */
 #define _PAGE_WP	(1 << 1)	/* Write protected */
 
 /* Software bit-defines */
-#define _PAGE_PRESENT	(1 << 2)	/* Present */ /* SJK: use VALID for this? */
 #define _PAGE_FILE	(1 << 3)	/* 0=swap, 1=pagecache (!present) */
 #define _PAGE_READ	(1 << 4)	/* Read enabled */
 #define _PAGE_ACCESSED	(1 << 5)	/* Accessed */
