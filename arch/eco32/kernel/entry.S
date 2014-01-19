@@ -68,3 +68,6 @@ ENTRY(__switch_to)
 
 ENTRY(sys_rt_sigreturn)
 	j	.	/* SJK TODO */
+
+ENTRY(page_fault_handler)
+	j	.	/* SJK TODO */
