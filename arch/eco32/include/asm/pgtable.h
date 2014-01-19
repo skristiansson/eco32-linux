@@ -18,7 +18,11 @@
 #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
 
+#ifdef __ASSEMBLY__
+#define PTRS_PER_PTE	(1 << (PAGE_SHIFT-2))
+#else
 #define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-2))
+#endif
 #define PTRS_PER_PGD	(1UL << (32 - PGDIR_SHIFT))
 
 #ifndef __ASSEMBLY__
