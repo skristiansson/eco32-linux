@@ -1,5 +1,8 @@
 # UAPI Header export list
 include include/uapi/asm-generic/Kbuild.asm
 
+header-y += elf.h
+
+generic-y += fcntl.h
 generic-y += param.h
 generic-y += setup.h
