@@ -21,6 +21,17 @@ exception:
 	j	exception
 
 tlbmiss:
+	/*
+	 * Before we can use $1, it has to be saved awaym since it might be
+	 * holding the address at the offending instruction.
+	 * $1 can't be stored directly, since gas might insert a ldhi;ori
+	 * sequence on exception_saved_gpr1.
+	 * And we have to save $1, since gas will use it when we load
+	 * current_pgd later.
+	 */
+	ori	$3,$1,0
+	stw	$3,$0,exception_saved_gpr1
+
 	/* load current_pgd, we use the asm temp reg ($1) as storage */
 	ori	$1,$0,current_pgd
 	ldw	$1,$1,0
@@ -46,10 +57,18 @@ tlbmiss:
 	ldw	$1,$1,0			/* pte */
 	mvts	$1,SPR_TLB_ENTRY_LOW
 	tbwi				/* write out to tlb */
+
+	/* restore r1 */
+	ldw	$3,$0,exception_saved_gpr1
+	ori	$1,$3,0
+
 	rfx
 
 _fault:
 	j	page_fault_handler
+
+exception_saved_gpr1:
+	.space 4
 
 	__HEAD
 	.global _start
