@@ -59,6 +59,8 @@ int main(void)
 	DEFINE(PT_GPR29, offsetof(struct pt_regs, gpr[29]));
 	DEFINE(PT_GPR30, offsetof(struct pt_regs, gpr[30]));
 	DEFINE(PT_GPR31, offsetof(struct pt_regs, gpr[31]));
+	DEFINE(PT_PC, offsetof(struct pt_regs, pc));
+	DEFINE(PT_PSW, offsetof(struct pt_regs, psw));
 
 	/* offsets into cpu_context */
 	DEFINE(CC_GPR16, offsetof(struct cpu_context, r16));
