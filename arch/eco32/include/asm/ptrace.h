@@ -16,6 +16,8 @@
 #define user_mode(regs)			((regs)->psw & SPR_PSW_UP)
 #define kernel_mode(regs)		(!user_mode(regs))
 
+#define interrupts_enabled(regs)	((regs)->psw & SPR_PSW_IP)
+
 #define instruction_pointer(regs)	((regs)->pc)
 #define profile_pc(regs)		instruction_pointer(regs)
 #define user_stack_pointer(regs)	((regs)->gpr[29])
