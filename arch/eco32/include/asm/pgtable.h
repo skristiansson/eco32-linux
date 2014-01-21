@@ -53,18 +53,18 @@ extern void paging_init(void);
  * 0x00000000 - 0xc0000000, the range 0xc0000000 - 0xffffffff is always
  * direct-mapped.
  *
- * The TLB only features two flags, valid and write-protection so most flags
+ * The TLB only features two flags, valid and write-enable so most flags
  * are emulated in software.
  * The layout of the hardware TLB looks like this:
  *
  * | 31:12 | 11:2     | 1  | 0     |
- * | PPN   | reserved | WP | VALID |
+ * | PPN   | reserved | WE | VALID |
  */
 
 /* Hardware bit-defines*/
 #define _PAGE_VALID	(1 << 0)	/* Valid */
 #define _PAGE_PRESENT	(1 << 0)	/* Present */
-#define _PAGE_WP	(1 << 1)	/* Write protected */
+#define _PAGE_WRITE	(1 << 1)	/* Write enabled */
 
 /* Software bit-defines */
 #define _PAGE_FILE	(1 << 3)	/* 0=swap, 1=pagecache (!present) */
@@ -77,11 +77,11 @@ extern void paging_init(void);
 
 #define PAGE_NONE	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
 #define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
-#define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_WP)
+#define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
 #define PAGE_READONLY_X	PAGE_READONLY
 #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
 #define PAGE_COPY_X	PAGE_COPY
-#define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
+#define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_WRITE)
 #define PAGE_SHARED_X	PAGE_SHARED
 
 /*
@@ -176,7 +176,7 @@ static inline int pte_read(pte_t pte)
 
 static inline int pte_write(pte_t pte)
 {
-	return !(pte_val(pte) & _PAGE_WP);
+	return pte_val(pte) & _PAGE_WRITE;
 }
 
 static inline int pte_exec(pte_t pte)
@@ -206,7 +206,7 @@ static inline int pte_special(pte_t pte)
 
 static inline pte_t pte_wrprotect(pte_t pte)
 {
-	pte_val(pte) |= _PAGE_WP;
+	pte_val(pte) &= ~(_PAGE_WRITE);
 	return pte;
 }
 
@@ -236,7 +236,7 @@ static inline pte_t pte_mkold(pte_t pte)
 
 static inline pte_t pte_mkwrite(pte_t pte)
 {
-	pte_val(pte) &= ~(_PAGE_WP);
+	pte_val(pte) |= _PAGE_WRITE;
 	return pte;
 }
 
