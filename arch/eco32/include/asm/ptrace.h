@@ -13,7 +13,7 @@
 #include <asm/spr.h>
 
 #ifndef __ASSEMBLY__
-#define user_mode(regs)			((regs)->psw & SPR_PSW_UC)
+#define user_mode(regs)			((regs)->psw & SPR_PSW_UP)
 #define kernel_mode(regs)		(!user_mode(regs))
 
 #define instruction_pointer(regs)	((regs)->pc)
