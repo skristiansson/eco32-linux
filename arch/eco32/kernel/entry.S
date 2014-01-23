@@ -102,12 +102,25 @@ ENTRY(ret_from_kernel_thread)
 	jal	schedule_tail
 	ori	$4,$17,0
 	jalr	$16	/* fn */
-	j	. 	/* SJK TODO */
-
+	j	ret_from_syscall
 
 ENTRY(ret_from_fork)
 	jal	schedule_tail
 	j	.	/* SJK TODO */
+
+ENTRY(ret_from_syscall)
+	/* FIXME: this is by no means complete... */
+	/*
+	 * This should be the post-exception PSW that we load,
+	 * which means that IC should be 0,
+	 * thus we are implicitly disabling interrupts here.
+	 */
+	ldw	$3,$29,PT_PSW
+	mvts	$3,SPR_PSW
+	ldw	$3,$29,PT_GPR3
+	ldw	$30,$29,PT_PC
+	ldw	$29,$29,PT_GPR29
+	rfx
 
 ENTRY(__switch_to)
 	ori	$8,$4,TI_CPU_CONTEXT	/* prev_ti->cpu_context */
