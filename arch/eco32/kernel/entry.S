@@ -29,8 +29,7 @@
 
 /* SJK: all of those are not needed to be saved */
 #define SAVE_REGS \
-	stw	$3,$29,PT_GPR29				;\
-	stw	$0,$29,PT_GPR0				;\
+	stw	$3,$29,PT_GPR29	/* sp is in $3 */	;\
 	stw	$1,$29,PT_GPR1				;\
 	stw	$2,$29,PT_GPR2				;\
 	stw	$3,$29,PT_GPR3				;\
@@ -67,7 +66,6 @@
 #define RESTORE_REGS \
 	ldw	$3,$29,PT_PSW				;\
 	mvts	$3,SPR_PSW				;\
-	ldw	$0,$29,PT_GPR0				;\
 	ldw	$1,$29,PT_GPR1				;\
 	ldw	$2,$29,PT_GPR2				;\
 	ldw	$3,$29,PT_GPR3				;\
