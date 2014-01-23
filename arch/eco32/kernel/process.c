@@ -126,7 +126,7 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
  */
 void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 {
-	unsigned long psw = mvfs(SPR_PSW) | SPR_PSW_UC;
+	unsigned long psw = mvfs(SPR_PSW) | SPR_PSW_UP;
 	set_fs(USER_DS);
 	memset(regs, 0, sizeof(struct pt_regs));
 
