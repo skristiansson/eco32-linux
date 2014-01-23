@@ -136,7 +136,6 @@ void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 	regs->pc = pc;
 	regs->psw = psw;
 	regs->gpr[29] = sp;
-	BUG(); /* SJK TODO */
 }
 
 /* Fill in the fpu structure for a core dump.  */
