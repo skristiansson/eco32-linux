@@ -64,7 +64,7 @@
 	mvfs	$3,SPR_PSW				;\
 	stw	$3,$29,PT_PSW
 
-#define LOAD_REGS \
+#define RESTORE_REGS \
 	ldw	$3,$29,PT_PSW				;\
 	mvts	$3,SPR_PSW				;\
 	ldw	$0,$29,PT_GPR0				;\
@@ -168,5 +168,5 @@ ENTRY(page_fault_handler)
 	ori	$4,$29,0
 	mvfs	$5,SPR_TLB_BAD_ADDRESS
 	jal	do_page_fault
-	LOAD_REGS
+	RESTORE_REGS
 	rfx				/* return to where exception occured */
