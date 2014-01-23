@@ -14,7 +14,7 @@
 
 #define SWITCH_TO_KERNEL_STACK \
 	mvfs	$3,SPR_PSW				;\
-	slli	$3,$3,25	/* PSW_UP */		;\
+	slri	$3,$3,25	/* PSW_UP */		;\
 	andi	$3,$3,1					;\
 	beq	$3,$0,1f	/* check mode */	;\
 	/* user mode */					;\
