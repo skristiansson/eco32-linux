@@ -8,6 +8,7 @@
 
 #include <linux/init.h>
 #include <linux/ptrace.h>
+#include <asm/spr.h>
 
 void show_trace(struct task_struct *task, unsigned long *stack)
 {
@@ -38,6 +39,11 @@ void die_if_kernel(const char *str, struct pt_regs *regs, long err)
 		return;
 
 	die(str, regs, err);
+}
+
+void do_exception(struct pt_regs *regs)
+{
+	die("Unhandled exception", regs, (regs->psw >> SPR_PSW_EID_BIT) & 0x1f);
 }
 
 void __init trap_init(void)

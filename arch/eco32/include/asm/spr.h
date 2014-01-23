@@ -24,6 +24,7 @@
 #define SPR_PSW_IC		(1<<23) /* Current global interrupt enable */
 #define SPR_PSW_IP		(1<<22) /* Previous global interrupt enable */
 #define SPR_PSW_IO		(1<<21) /* Old global interrupt enable */
+#define SPR_PSW_EID_BIT		16
 #define SPR_PSW_EID(x)		(((x) & 0x1f) << 16) /* Exception identifier */
 #define SPR_PSW_IEN(x)		((x) & 0xffff) /* Interrupt Enable */
 

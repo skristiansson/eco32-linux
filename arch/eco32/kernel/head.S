@@ -18,7 +18,7 @@ _reset:
 	j	_start
 
 exception:
-	j	exception
+	j	exception_handler
 
 tlbmiss:
 	/*

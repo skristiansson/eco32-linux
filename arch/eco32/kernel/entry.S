@@ -160,6 +160,16 @@ ENTRY(__switch_to)
 ENTRY(sys_rt_sigreturn)
 	j	.	/* SJK TODO */
 
+ENTRY(exception_handler)
+	SWITCH_TO_KERNEL_STACK
+	SAVE_REGS
+	ori	$3,$0,KERNEL_PSW
+	mvts	$3,SPR_PSW
+	ori	$4,$29,0		/* pt_regs */
+	jal	do_exception
+	RESTORE_REGS
+	rfx				/* return to where exception occured */
+
 ENTRY(page_fault_handler)
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
