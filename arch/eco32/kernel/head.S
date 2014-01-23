@@ -58,7 +58,7 @@ tlbmiss:
 	andi	$3,$1,1			/* check present bit */
 	beq	$3,$0,_fault
 	mvts	$1,SPR_TLB_ENTRY_LOW
-	tbwi				/* write out to tlb */
+	tbwr				/* write out to random tlb */
 
 	/* restore $1 */
 	ldw	$3,$0,exception_saved_gpr1
