@@ -55,6 +55,8 @@ tlbmiss:
 	slli	$3,$3,2			/* word address */
 	add	$1,$1,$3
 	ldw	$1,$1,0			/* pte */
+	andi	$3,$1,1			/* check present bit */
+	beq	$3,$0,_fault
 	mvts	$1,SPR_TLB_ENTRY_LOW
 	tbwi				/* write out to tlb */
 
