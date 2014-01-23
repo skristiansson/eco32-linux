@@ -86,7 +86,8 @@ _start:
 	ori	$24,$0,init_thread_union
 
 	/* Flush tlbs */
-	mvts	$0,SPR_TLB_ENTRY_HIGH
+	ori	$8,$0,0xc0000000
+	mvts	$8,SPR_TLB_ENTRY_HIGH
 	mvts	$0,SPR_TLB_ENTRY_LOW
 	ori	$8,$0,32
 1:

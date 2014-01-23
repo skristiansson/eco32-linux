@@ -29,7 +29,7 @@ static inline void flush_tlb_all(void)
 {
 	int i;
 
-	mvts(SPR_TLB_ENTRY_HIGH, 0);
+	mvts(SPR_TLB_ENTRY_HIGH, 0xc0000000);
 	mvts(SPR_TLB_ENTRY_LOW, 0);
 	for (i = 0; i < NUM_TLB_ENTRIES; i++) {
 		mvts(SPR_TLB_INDEX, i);
@@ -58,7 +58,7 @@ static inline void flush_tlb_page(struct vm_area_struct *vma,
 	tlb_index = mvfs(SPR_TLB_INDEX);
 
 	if (tlb_index != 0x80000000) {
-		mvts(SPR_TLB_ENTRY_HIGH, 0);
+		mvts(SPR_TLB_ENTRY_HIGH, 0xc0000000);
 		mvts(SPR_TLB_ENTRY_LOW, 0);
 		tbwi();
 	}
@@ -75,7 +75,7 @@ static inline void flush_tlb_range(struct vm_area_struct *vma,
 		mvts(SPR_TLB_INDEX, i);
 		addr = mvfs(SPR_TLB_ENTRY_HIGH);
 		if (addr >= start && addr < end) {
-			mvts(SPR_TLB_ENTRY_HIGH, 0);
+			mvts(SPR_TLB_ENTRY_HIGH, 0xc0000000);
 			mvts(SPR_TLB_ENTRY_LOW, 0);
 			tbwi();
 		}
