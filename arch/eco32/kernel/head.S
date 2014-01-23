@@ -58,13 +58,16 @@ tlbmiss:
 	mvts	$1,SPR_TLB_ENTRY_LOW
 	tbwi				/* write out to tlb */
 
-	/* restore r1 */
+	/* restore $1 */
 	ldw	$3,$0,exception_saved_gpr1
 	ori	$1,$3,0
 
 	rfx
 
 _fault:
+	/* restore $1 */
+	ldw	$3,$0,exception_saved_gpr1
+	ori	$1,$3,0
 	j	page_fault_handler
 
 exception_saved_gpr1:
