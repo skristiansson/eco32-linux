@@ -46,6 +46,18 @@ void do_exception(struct pt_regs *regs)
 	die("Unhandled exception", regs, (regs->psw >> SPR_PSW_EID_BIT) & 0x1f);
 }
 
+/* SJK DEBUG */
+extern void *sys_call_table[];
+void syscall_debug(struct pt_regs *regs)
+{
+	printk("SJK DEBUG: syscall %d: func = %x, caller = %x, "
+	       "args = %x %x %x %x %x %x\n",
+	       regs->gpr[25], *((u32 *)sys_call_table + regs->gpr[25]),
+	       regs->pc, regs->gpr[4], regs->gpr[5], regs->gpr[6],
+	       regs->gpr[7], regs->gpr[8], regs->gpr[9]);
+}
+/* SJK DEBUG END */
+
 void __init trap_init(void)
 {
 }
