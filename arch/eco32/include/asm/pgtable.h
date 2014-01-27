@@ -38,6 +38,8 @@ extern void paging_init(void);
 #define set_pte(ptep, pteval) ((*(ptep)) = (pteval))
 #define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
 
+#define set_pmd(pmdp, pmdval) (*(pmdp) = pmdval)
+
 /*
  * Vmalloc area of 64 MB, placed right below the kernel space.
  */
