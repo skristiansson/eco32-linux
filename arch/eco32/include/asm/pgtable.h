@@ -51,7 +51,7 @@ extern void paging_init(void);
  * data accesses.
  * The TLBs can be mapped to hold virtual addresses in the range
  * 0x00000000 - 0xc0000000, the range 0xc0000000 - 0xffffffff is always
- * direct-mapped.
+ * direct-mapped to the physical range 0x00000000 - 0x3fffffff.
  *
  * The TLB only features two flags, valid and write-enable so most flags
  * are emulated in software.
