@@ -22,6 +22,14 @@ void __init setup_cpuinfo(void)
 	/* SJK TODO */
 }
 
+static int __init eco32_device_probe(void)
+{
+	of_platform_populate(NULL, NULL, NULL, NULL);
+
+	return 0;
+}
+device_initcall(eco32_device_probe);
+
 static void __init setup_memory(void)
 {
 	unsigned long bootmap_size;
