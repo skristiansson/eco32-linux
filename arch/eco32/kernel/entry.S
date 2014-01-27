@@ -164,6 +164,15 @@ ENTRY(exception_handler)
 	andi	$3,$3,0x1f
 	subi	$3,$3,20		/* EID = 20: trap */
 	beq	$3,$0,syscall_handler
+	/* kernel tlb misses are handled as user tlb misses */
+	subi	$3,$3,1			/* EID = 21: kernel tlb miss */
+	beq	$3,$0,tlbmiss
+	/* page faults */
+	subi	$3,$3,1			/* EID = 22: tlb write */
+	beq	$3,$0,page_fault_handler
+	subi	$3,$3,1			/* EID = 23: tlb invalid */
+	beq	$3,$0,page_fault_handler
+
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
 	ori	$3,$0,KERNEL_PSW

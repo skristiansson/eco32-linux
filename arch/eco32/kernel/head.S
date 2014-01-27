@@ -7,6 +7,7 @@
  */
 
 #include <linux/init.h>
+#include <linux/linkage.h>
 #include <asm/page.h>
 #include <asm/pgtable.h>
 #include <asm/asm-offsets.h>
@@ -20,9 +21,9 @@ _reset:
 exception:
 	j	exception_handler
 
-tlbmiss:
+ENTRY(tlbmiss)
 	/*
-	 * Before we can use $1, it has to be saved awaym since it might be
+	 * Before we can use $1, it has to be saved away, since it might be
 	 * holding the address at the offending instruction.
 	 * $1 can't be stored directly, since gas might insert a ldhi;ori
 	 * sequence on exception_saved_gpr1.
