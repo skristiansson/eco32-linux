@@ -8,6 +8,8 @@
 
 #include <linux/mm.h>
 #include <linux/bootmem.h>
+#include <linux/sched.h>
+#include <asm/mmu_context.h>
 
 void __init paging_init(void)
 {
@@ -18,6 +20,8 @@ void __init paging_init(void)
 	/* Clear out the init_mm.pgd that will contain the kernel's mappings. */
 	for(i = 0; i < PTRS_PER_PGD; i++)
 		swapper_pg_dir[i] = __pgd(0);
+
+	current_pgd = init_mm.pgd;
 
 	memset(zones_size, 0, sizeof(zones_size));
 	zones_size[ZONE_NORMAL] = max_low_pfn;
