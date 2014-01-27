@@ -10,9 +10,14 @@
 #include <linux/init.h>
 #include <linux/ftrace.h>
 #include <linux/irq.h>
+#include <linux/irqchip.h>
 #include <linux/export.h>
 #include <linux/irqdomain.h>
 #include <linux/irqflags.h>
+#include <linux/of.h>
+#include <linux/of_platform.h>
+
+#include "../../drivers/irqchip/irqchip.h"
 
 /* SJK: use generic versions? */
 static void eco32_irq_mask(struct irq_data *data)
@@ -66,12 +71,25 @@ static const struct irq_domain_ops eco32_irq_domain_ops = {
 	.map = eco32_map,
 };
 
+static int __init
+init_eco32_IRQ(struct device_node *intc, struct device_node *parent)
+{
+	/* Disable interrupts */
+	mvts(SPR_PSW, mvfs(SPR_PSW) & ~(SPR_PSW_IEN(0xffff)));
+
+	root_domain = irq_domain_add_linear(intc, 16,
+					    &eco32_irq_domain_ops, NULL);
+	return 0;
+}
+IRQCHIP_DECLARE(eco32_intc, "eco32,intc", init_eco32_IRQ);
+
 void __init init_IRQ(void)
 {
-	/* SJK TODO */
+	/* process the entire interrupt tree in one go */
+	irqchip_init();
 }
 
 void __irq_entry do_IRQ(struct pt_regs *regs)
 {
-	/* SJK TODO */
+	BUG(); /* SJK TODO */
 }
