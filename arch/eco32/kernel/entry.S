@@ -108,20 +108,6 @@ ENTRY(ret_from_fork)
 	jal	schedule_tail
 	j	.	/* SJK TODO */
 
-ENTRY(ret_from_syscall)
-	/* FIXME: this is by no means complete... */
-	/*
-	 * This should be the post-exception PSW that we load,
-	 * which means that IC should be 0,
-	 * thus we are implicitly disabling interrupts here.
-	 */
-	ldw	$3,$29,PT_PSW
-	mvts	$3,SPR_PSW
-	ldw	$3,$29,PT_GPR3
-	ldw	$30,$29,PT_PC
-	ldw	$29,$29,PT_GPR29
-	rfx
-
 ENTRY(__switch_to)
 	ori	$8,$4,TI_CPU_CONTEXT	/* prev_ti->cpu_context */
 
@@ -172,6 +158,12 @@ ENTRY(sys_rt_sigreturn)
 	j	.	/* SJK TODO */
 
 ENTRY(exception_handler)
+	/* syscalls */
+	mvfs	$3,SPR_PSW
+	slri	$3,$3,SPR_PSW_EID_BIT
+	andi	$3,$3,0x1f
+	subi	$3,$3,20		/* EID = 20: trap */
+	beq	$3,$0,syscall_handler
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
 	ori	$3,$0,KERNEL_PSW
@@ -191,3 +183,53 @@ ENTRY(page_fault_handler)
 	jal	do_page_fault
 	RESTORE_REGS
 	rfx				/* return to where exception occured */
+
+/*
+ * Syscall ABI:
+ * syscall number in $25
+ * args in $4-$9
+ */
+syscall_handler:
+	SWITCH_TO_KERNEL_STACK
+	/*
+	 * FIXME: it's not necessary to save all regs here,
+	 * this should be optimized.
+	 */
+	SAVE_REGS
+/* SJK DEBUG */
+	ori	$4,$29,0
+	jal	syscall_debug
+	ldw	$4,$29,PT_GPR4
+	ldw	$5,$29,PT_GPR5
+	ldw	$6,$29,PT_GPR6
+	ldw	$7,$29,PT_GPR7
+	ldw	$8,$29,PT_GPR8
+	ldw	$9,$29,PT_GPR8
+/* SJK DEBUG END */
+	slli	$25,$25,2
+	ldw	$25,$25,sys_call_table
+	ori	$3,$0,(KERNEL_PSW | SPR_PSW_IC)
+	mvts	$3,SPR_PSW
+	/*
+	 * TODO: $8 and $9 have to be put on the stack before doing the
+	 * syscall.
+	 */
+	jalr	$25
+	addi	$30,$30,4	/* skip over the trap instruction */
+	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
+	j	ret_from_syscall
+
+ret_from_syscall:
+	/* FIXME: this is by no means complete... */
+	/*
+	 * This should be the post-exception PSW that we load,
+	 * which means that IC should be 0,
+	 * thus we are implicitly disabling interrupts here.
+	 */
+	ldw	$3,$29,PT_PSW
+	mvts	$3,SPR_PSW
+	ldw	$3,$29,PT_GPR3
+	ldw	$30,$29,PT_PC
+	ldw	$31,$29,PT_GPR31
+	ldw	$29,$29,PT_GPR29
+	rfx
