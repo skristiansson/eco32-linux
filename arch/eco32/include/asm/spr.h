@@ -28,6 +28,20 @@
 #define SPR_PSW_EID(x)		(((x) & 0x1f) << 16) /* Exception identifier */
 #define SPR_PSW_IEN(x)		((x) & 0xffff) /* Interrupt Enable */
 
+/* EID defines */
+/* 0..15 Device Interrupts */
+#define EID_BUS_TIMEOUT		16
+#define EID_ILLEGAL_INSN	17
+#define EID_PRIVILEGED_INSN	18
+#define EID_DIV_BY_ZERO		19
+#define EID_TRAP		20
+#define EID_TLB_MISS		21
+#define EID_TLB_WRITE		22
+#define EID_TLB_INVALID		23
+#define EID_ILLEGAL_ADDR	24
+#define EID_PRIVILEGED_ADDR	25
+/* 26..31 Reserved */
+
 #ifndef __ASSEMBLY__
 static inline void mvts(const unsigned long addr, unsigned long val)
 {
