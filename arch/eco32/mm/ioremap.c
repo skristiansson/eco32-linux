@@ -8,19 +8,26 @@
 
 #include <linux/vmalloc.h>
 #include <linux/io.h>
+#include <asm/mmu.h>
 
-/*
- * Remap an arbitrary physical address space into the kernel virtual
- * address space. Needed when the kernel wants to access high addresses
- * directly.
- *
- * NOTE! We need to allow non-page-aligned mappings too: we will obviously
- * have to convert them into an offset in a page-aligned mapping, but the
- * caller shouldn't need to know that small detail.
- */
 void __iomem *__init_refok
-__ioremap(phys_addr_t addr, unsigned long size, pgprot_t prot)
+__ioremap(phys_addr_t paddr, unsigned long size, pgprot_t prot)
 {
+	unsigned long end;
+
+	/* Don't allow wraparound or zero size */
+	end = paddr + size - 1;
+	if (!size || (end < paddr))
+		return NULL;
+
+	/*
+	 * If the requested address is in the direct-mapped space,
+	 * we can translate it here and don't need to map it through the MMU.
+	 */
+	if (paddr <= ECO32_DIRECT_MAP_PADDR_END)
+		return (void __iomem *)((char *)paddr +
+					ECO32_DIRECT_MAP_VADDR_START);
+
 	BUG(); /* SJK TODO */
 }
 
