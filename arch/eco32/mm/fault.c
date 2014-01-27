@@ -17,6 +17,7 @@ void do_page_fault(struct pt_regs *regs, unsigned long address)
 	struct mm_struct *mm;
 	struct vm_area_struct *vma;
 	int fault;
+	unsigned int eid = (regs->psw >> SPR_PSW_EID_BIT) & 0x1f;
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
 	printk("SJK DEBUG: %s\n", __func__);
@@ -45,10 +46,11 @@ retry:
 		goto good_area;
 
 good_area:
-	/* read, TODO: handle write */
-	flags |= FAULT_FLAG_WRITE; /* SJK REMOVE!!! */
 	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC))))
 		goto bad_area;
+
+	if (eid == EID_TLB_WRITE)
+		flags |= FAULT_FLAG_WRITE;
 
 	fault = handle_mm_fault(mm, vma, address, flags);
 
