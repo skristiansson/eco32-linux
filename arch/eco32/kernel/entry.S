@@ -106,7 +106,8 @@ ENTRY(ret_from_kernel_thread)
 
 ENTRY(ret_from_fork)
 	jal	schedule_tail
-	j	.	/* SJK TODO */
+	ldw	$2,$29,PT_GPR2		/* load return value */
+	j	ret_from_syscall
 
 ENTRY(__switch_to)
 	ori	$8,$4,TI_CPU_CONTEXT	/* prev_ti->cpu_context */
