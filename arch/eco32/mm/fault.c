@@ -18,25 +18,31 @@ static int vmalloc_fault(unsigned long address)
 	pud_t *pud, *pud_k;
 	pmd_t *pmd, *pmd_k;
 
+	printk("SJK DEBUG: %s: address = %x, pgd_index(address) = %x\n",
+	       __func__, address, pgd_index(address));
+
         /* Make sure we are in vmalloc area: */
 	if (!(address >= VMALLOC_START && address < VMALLOC_END))
 		return -1;
 
 	pgd = (pgd_t *)current_pgd + pgd_index(address);
 	pgd_k = pgd_offset_k(address);
-	printk("SJK DEBUG: %s: pgd = %x, pgd_k = %x\n", __func__, pgd, pgd_k);
+	printk("SJK DEBUG: %s: pgd = %x, pgd_k = %x\n",
+	       __func__, (u32)pgd, (u32)pgd_k);
 	if (!pgd_present(*pgd_k))
 		return -1;
 
 	pud = pud_offset(pgd, address);
 	pud_k = pud_offset(pgd_k, address);
-	printk("SJK DEBUG: %s: pud = %x, pud_k = %x\n", __func__, pud, pud_k);
+	printk("SJK DEBUG: %s: pud = %x, pud_k = %x\n",
+	       __func__, (u32)pud, (u32)pud_k);
 	if (!pud_present(*pud_k))
 		return -1;
 
 	pmd = pmd_offset(pud, address);
 	pmd_k = pmd_offset(pud_k, address);
-	printk("SJK DEBUG: %s: pmd = %x, pmd_k = %x\n", __func__, pmd, pmd_k);
+	printk("SJK DEBUG: %s: pmd = %x, pmd_k = %x, pmd_val(*pmd_k) = %x\n",
+	       __func__, (u32)pmd, (u32)pmd_k, pmd_val(*pmd_k));
 	if (!pmd_present(*pmd_k))
 		return -1;
 
@@ -55,8 +61,8 @@ void do_page_fault(struct pt_regs *regs, unsigned long address)
 	unsigned int eid = (regs->psw >> SPR_PSW_EID_BIT) & 0x1f;
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
-	printk("SJK DEBUG: %s: address = %x, regs = %x\n",
-	       __func__, address, regs);
+	printk("SJK DEBUG: %s: address = %x, regs = %x, eid = %d\n",
+	       __func__, address, regs, eid);
 	tsk = current;
 
 	/* Fault in kernel space that is not a protection fault. */
@@ -72,17 +78,13 @@ void do_page_fault(struct pt_regs *regs, unsigned long address)
 	if (user_mode(regs))
 		flags |= FAULT_FLAG_USER;
 
-	printk("SJK DEBUG: %s: tsk = %x\n", __func__, tsk);
 	mm = tsk->mm;
-	printk("SJK DEBUG: %s: mm = %x\n", __func__, mm);
 	if (!mm)
 		goto no_context;
 
 retry:
 	down_read(&mm->mmap_sem);
 	vma = find_vma(mm, address);
-	printk("SJK DEBUG: %s: vma = %x, vma->vm_start = %x, address = %x\n",
-	       __func__, vma, vma->vm_start, address);
 	if (!vma)
 		goto bad_area;
 
@@ -138,6 +140,7 @@ good_area:
 bad_area:
 	up_read(&mm->mmap_sem);
 	printk("SJK DEBUG: %s: bad_area\n", __func__);
+	show_regs(regs);
 	BUG(); /* SJK TODO */
 
 bad_area_nosemaphore:
