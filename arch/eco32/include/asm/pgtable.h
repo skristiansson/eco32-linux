@@ -78,13 +78,15 @@ extern void paging_init(void);
 #define _PAGE_CHG_MASK	(PAGE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
 
 #define PAGE_NONE	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
-#define PAGE_KERNEL	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_WRITE)
+#define PAGE_KERNEL \
+	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_READ | _PAGE_WRITE)
 #define PAGE_READONLY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
-#define PAGE_READONLY_X	PAGE_READONLY
+#define PAGE_READONLY_X	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_EXEC)
 #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
-#define PAGE_COPY_X	PAGE_COPY
+#define PAGE_COPY_X	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_EXEC)
 #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_WRITE)
-#define PAGE_SHARED_X	PAGE_SHARED
+#define PAGE_SHARED_X \
+	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_WRITE | _PAGE_EXEC)
 
 /*
  * ECO32 hardware have no support for execute protection.
