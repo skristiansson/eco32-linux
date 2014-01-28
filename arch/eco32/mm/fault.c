@@ -83,12 +83,15 @@ retry:
 	vma = find_vma(mm, address);
 	printk("SJK DEBUG: %s: vma = %x, vma->vm_start = %x, address = %x\n",
 	       __func__, vma, vma->vm_start, address);
+	if (!vma)
+		goto bad_area;
 
 	if (vma->vm_start <= address)
 		goto good_area;
-
-	/* SJK TODO: more checks here */
-	BUG();
+	if (!(vma->vm_flags & VM_GROWSDOWN))
+		goto bad_area;
+	if (expand_stack(vma, address))
+		goto bad_area;
 
 good_area:
 	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC))))
