@@ -49,8 +49,6 @@ static inline void pte_free(struct mm_struct *mm, struct page *ptepage)
 	__free_page(ptepage);
 }
 
-/* SJK TODO */
-
 #define __pte_free_tlb(tlb, pte, addr)	tlb_remove_page((tlb), (pte))
 
 #define pmd_populate(mm, pmd, pte) \
