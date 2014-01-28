@@ -11,11 +11,11 @@
 
 #ifdef __KERNEL__
 
+#include <asm/page.h>
 #ifndef __ASSEMBLY__
 #include <asm/types.h>
 #include <asm/processor.h>
 #endif
-
 
 /* eco32 have 8k threads */
 #define THREAD_SIZE_ORDER	1
