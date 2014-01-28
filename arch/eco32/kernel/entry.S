@@ -215,6 +215,9 @@ syscall_handler:
 	ldw	$8,$29,PT_GPR8
 	ldw	$9,$29,PT_GPR8
 /* SJK DEBUG END */
+	addi	$30,$30,4	/* skip over the trap instruction */
+	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
+
 	slli	$25,$25,2
 	ldw	$25,$25,sys_call_table
 	ori	$3,$0,(KERNEL_PSW | SPR_PSW_IC)
@@ -230,9 +233,6 @@ syscall_handler:
 	jalr	$25
 	addi	$29,$29,8+16
 
-	ldw	$30,$29,PT_PC	/* TODO: try to avoid this load */
-	addi	$30,$30,4	/* skip over the trap instruction */
-	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
 	j	ret_from_syscall
 
 ret_from_syscall:
