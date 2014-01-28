@@ -230,6 +230,7 @@ syscall_handler:
 	jalr	$25
 	addi	$29,$29,8+16
 
+	ldw	$30,$29,PT_PC	/* TODO: try to avoid this load */
 	addi	$30,$30,4	/* skip over the trap instruction */
 	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
 	j	ret_from_syscall
