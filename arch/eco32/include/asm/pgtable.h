@@ -159,7 +159,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 
 #define pmd_none(pmd)		(!pmd_val(pmd))
 #define pmd_bad(pmd)		(pmd_val(pmd) & (~PAGE_MASK))
-#define pmd_present(pmd)	(pmd_val(pmd) & _PAGE_PRESENT)
+#define pmd_present(pmd)	(pmd_val(pmd))
 #define pmd_clear(pmdp)		do { pmd_val(*(pmdp)) = 0; } while (0)
 #define pmd_page(pmd)		(pfn_to_page(__pa(pmd_val(pmd)) >> PAGE_SHIFT))
 #define pmd_page_kernel(pmd)    ((unsigned long) (pmd_val(pmd) & PAGE_MASK))
