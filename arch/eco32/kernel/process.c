@@ -76,7 +76,7 @@ void show_regs(struct pt_regs *regs)
 	printk("GPR24: %08lx GPR25: %08lx GPR26: %08lx GPR27: %08lx\n",
 	       regs->gpr[24], regs->gpr[25], regs->gpr[26], regs->gpr[27]);
 	printk("GPR28: %08lx GPR29: %08lx GPR30: %08lx GPR31: %08lx\n",
-	       regs->gpr[28], regs->gpr[29], regs->gpr[30], regs->gpr[31]);
+	       regs->gpr[28], regs->gpr[29], regs->pc, regs->gpr[31]);
 }
 
 unsigned long thread_saved_pc(struct task_struct *t)
