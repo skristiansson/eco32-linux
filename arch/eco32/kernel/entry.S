@@ -220,10 +220,16 @@ syscall_handler:
 	ori	$3,$0,(KERNEL_PSW | SPR_PSW_IC)
 	mvts	$3,SPR_PSW
 	/*
-	 * TODO: $8 and $9 have to be put on the stack before doing the
+	 * The usage of $8 and $9 as argument registers are only part of
+	 * the syscall ABI and have to be put on the stack before doing the
 	 * syscall.
 	 */
+	subi	$29,$29,8+16
+	stw	$8,$29,16
+	stw	$9,$29,20
 	jalr	$25
+	addi	$29,$29,8+16
+
 	addi	$30,$30,4	/* skip over the trap instruction */
 	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
 	j	ret_from_syscall
