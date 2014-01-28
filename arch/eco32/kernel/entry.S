@@ -7,6 +7,7 @@
  */
 
 #include <linux/linkage.h>
+#include <asm/thread_info.h>
 #include <asm/asm-offsets.h>
 #include <asm/spr.h>
 
@@ -19,8 +20,7 @@
 	beq	$3,$0,1f	/* check mode */	;\
 	/* user mode */					;\
 	ori	$3,$29,0	/* save old $29 to $3 */;\
-	ori	$29,$24,TI_CPU_CONTEXT			;\
-	ldw	$29,$29,CC_GPR29			;\
+	addi	$29,$24,THREAD_SIZE /* current_pt_regs() */;\
 	j	2f					;\
 1:	/* kernel mode */				;\
 	ori	$3,$29,0				;\
