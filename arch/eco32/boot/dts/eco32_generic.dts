@@ -3,9 +3,10 @@
 	compatible = "eco32_generic";
 	#address-cells = <1>;
 	#size-cells = <1>;
+	interrupt-parent = <&intc>;
 
 	chosen {
-		bootargs = "keep_bootcon=1";
+		bootargs = "console=ttyECO0 debug";
 	};
 
 	memory@0 {
@@ -13,4 +14,15 @@
 		reg = <0x00000000 0x02000000>;
 	};
 
+	intc: intc {
+		compatible = "eco32,intc";
+		#interrupt-cells = <1>;
+		interrupt-controller;
+	};
+
+	serial0: serial@30300000 {
+		compatible = "eco32,uart";
+		reg = <0x30300000 0x10>;
+		interrupts = <1>;
+	};
 };
