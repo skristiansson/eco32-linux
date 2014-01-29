@@ -176,7 +176,9 @@ ENTRY(exception_handler)
 
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
-	ori	$3,$0,KERNEL_PSW
+	mvfs	$3,SPR_PSW
+	andi	$3,$3,0xff
+	ori	$3,$3,KERNEL_PSW
 	mvts	$3,SPR_PSW
 	ori	$4,$29,0		/* pt_regs */
 	jal	do_exception
@@ -186,7 +188,9 @@ ENTRY(exception_handler)
 ENTRY(page_fault_handler)
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
-	ori	$3,$0,KERNEL_PSW
+	mvfs	$3,SPR_PSW
+	andi	$3,$3,0xff
+	ori	$3,$3,KERNEL_PSW
 	mvts	$3,SPR_PSW
 	ori	$4,$29,0
 	mvfs	$5,SPR_TLB_BAD_ADDRESS
@@ -221,7 +225,9 @@ syscall_handler:
 
 	slli	$25,$25,2
 	ldw	$25,$25,sys_call_table
-	ori	$3,$0,(KERNEL_PSW | SPR_PSW_IC)
+	mvfs	$3,SPR_PSW
+	andi	$3,$3,0xff
+	ori	$3,$3,(KERNEL_PSW | SPR_PSW_IC)
 	mvts	$3,SPR_PSW
 	/*
 	 * The usage of $8 and $9 as argument registers are only part of
