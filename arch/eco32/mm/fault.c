@@ -7,8 +7,10 @@
  */
 
 #include <linux/mm.h>
+#include <linux/module.h>
 #include <linux/sched.h>
 #include <asm/pgtable.h>
+#include <asm/uaccess.h>
 
 volatile pgd_t *current_pgd;
 
@@ -48,6 +50,19 @@ static int vmalloc_fault(unsigned long address)
 
 	pr_debug("SJK DEBUG: %s: done\n", __func__);
 	set_pmd(pmd, *pmd_k);
+
+	return 0;
+}
+
+int fixup_exception(struct pt_regs *regs)
+{
+        const struct exception_table_entry *entry;
+
+	entry = search_exception_tables(regs->pc);
+	if (entry) {
+		regs->pc = entry->fixup;
+		return 1;
+        }
 
 	return 0;
 }
@@ -146,14 +161,20 @@ good_area:
 bad_area:
 	up_read(&mm->mmap_sem);
 	pr_debug("SJK DEBUG: %s: bad_area\n", __func__);
-	show_regs(regs);
-	BUG(); /* SJK TODO */
-
-bad_area_nosemaphore:
-	pr_debug("SJK DEBUG: %s: bad_area_nosemaphore\n", __func__);
-	BUG(); /* SJK TODO */
 
 no_context:
+	/*
+	 * Are we prepared to handle this kernel fault?
+	 *
+	 * (The kernel has valid exception-points in the source
+	 *  when it acesses user-memory. When it fails in one
+	 *  of those points, we find it in a table and do a jump
+	 *  to some fixup code that loads an appropriate error
+	 *  code)
+	 */
+	if (fixup_exception(regs))
+		return;
+
 	pr_debug("SJK DEBUG: %s: no_context\n", __func__);
 	show_regs(regs);
 	BUG(); /* SJK TODO */
