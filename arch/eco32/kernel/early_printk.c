@@ -6,6 +6,11 @@
  * kind, whether express or implied.
  */
 
+/*
+ * TODO: This should be removed and early serial support should be added
+ * to the eco32_uart driver instead.
+ */
+
 #include <linux/kernel.h>
 #include <linux/console.h>
 #include <linux/printk.h>
