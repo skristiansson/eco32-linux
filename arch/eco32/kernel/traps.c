@@ -8,6 +8,7 @@
 
 #include <linux/init.h>
 #include <linux/ptrace.h>
+#include <asm/irq.h>
 #include <asm/spr.h>
 
 void show_trace(struct task_struct *task, unsigned long *stack)
@@ -43,7 +44,15 @@ void die_if_kernel(const char *str, struct pt_regs *regs, long err)
 
 void do_exception(struct pt_regs *regs)
 {
-	die("Unhandled exception", regs, (regs->psw >> SPR_PSW_EID_BIT) & 0x1f);
+	int eid = (regs->psw >> SPR_PSW_EID_BIT) & 0x1f;
+
+	/* External interrupts are present as the lower numbers of eid */
+	if (eid < NR_IRQS) {
+		do_IRQ(eid, regs);
+		return;
+	}
+
+	die("Unhandled exception", regs, eid);
 }
 
 /* SJK DEBUG */

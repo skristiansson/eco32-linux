@@ -6,4 +6,6 @@
 
 #define NO_IRQ		(-1)
 
+extern void do_IRQ(int irq, struct pt_regs *regs);
+
 #endif /* __ASM_ECO32_IRQ_H__ */

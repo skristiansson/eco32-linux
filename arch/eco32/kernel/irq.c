@@ -16,28 +16,28 @@
 #include <linux/irqflags.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
+#include <asm/spr.h>
 
 #include "../../drivers/irqchip/irqchip.h"
 
-/* SJK: use generic versions? */
 static void eco32_irq_mask(struct irq_data *data)
 {
-	/* SJK TODO */
+	mvts(SPR_PSW, mvfs(SPR_PSW) & ~SPR_PSW_IEN(1 << data->hwirq));
 }
 
 static void eco32_irq_unmask(struct irq_data *data)
 {
-	/* SJK TODO */
+	mvts(SPR_PSW, mvfs(SPR_PSW) | SPR_PSW_IEN(1 << data->hwirq));
 }
 
 static void eco32_irq_ack(struct irq_data *data)
 {
-	/* SJK TODO */
+	/* eco32 doesn't have a way to ack interrupts on a global level */
 }
 
 static void eco32_irq_mask_ack(struct irq_data *data)
 {
-	/* SJK TODO */
+	eco32_irq_mask(data);
 }
 
 static struct irq_chip eco32_dev = {
@@ -49,13 +49,6 @@ static struct irq_chip eco32_dev = {
 };
 
 static struct irq_domain *root_domain;
-
-static inline int get_irq(int first)
-{
-	/* SJK TODO */
-	return -1;
-}
-
 
 static int eco32_map(struct irq_domain *d, unsigned int irq, irq_hw_number_t hw)
 {
@@ -89,7 +82,13 @@ void __init init_IRQ(void)
 	irqchip_init();
 }
 
-void __irq_entry do_IRQ(struct pt_regs *regs)
+void __irq_entry do_IRQ(int irq, struct pt_regs *regs)
 {
-	BUG(); /* SJK TODO */
+	struct pt_regs *old_regs = set_irq_regs(regs);
+
+	irq_enter();
+	generic_handle_irq(irq_find_mapping(root_domain, irq));
+	irq_exit();
+
+	set_irq_regs(old_regs);
 }
