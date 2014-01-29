@@ -214,7 +214,7 @@ syscall_handler:
 	ldw	$6,$29,PT_GPR6
 	ldw	$7,$29,PT_GPR7
 	ldw	$8,$29,PT_GPR8
-	ldw	$9,$29,PT_GPR8
+	ldw	$9,$29,PT_GPR9
 /* SJK DEBUG END */
 	addi	$30,$30,4	/* skip over the trap instruction */
 	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
