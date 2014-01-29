@@ -87,17 +87,23 @@ retry:
 	vma = find_vma(mm, address);
 	if (!vma)
 		goto bad_area;
+	pr_debug("SJK DEBUG: %s: 1) vma->vm_start = %x, vma->vm_end = %x\n",
+		 __func__, vma->vm_start, vma->vm_end);
 
 	if (vma->vm_start <= address)
 		goto good_area;
+	pr_debug("SJK DEBUG: %s: 2)\n",__func__);
 	if (!(vma->vm_flags & VM_GROWSDOWN))
 		goto bad_area;
+	pr_debug("SJK DEBUG: %s: 3)\n",__func__);
 	if (expand_stack(vma, address))
 		goto bad_area;
+	pr_debug("SJK DEBUG: %s: 4)\n",__func__);
 
 good_area:
 	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC))))
 		goto bad_area;
+	pr_debug("SJK DEBUG: %s: 5)\n",__func__);
 
 	if (eid == EID_TLB_WRITE)
 		flags |= FAULT_FLAG_WRITE;
