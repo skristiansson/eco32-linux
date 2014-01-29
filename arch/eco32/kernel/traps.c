@@ -44,12 +44,27 @@ void die_if_kernel(const char *str, struct pt_regs *regs, long err)
 
 void do_exception(struct pt_regs *regs)
 {
+	siginfo_t info;
 	int eid = (regs->psw >> SPR_PSW_EID_BIT) & 0x1f;
 
 	/* External interrupts are present as the lower numbers of eid */
 	if (eid < NR_IRQS) {
 		do_IRQ(eid, regs);
 		return;
+	}
+
+	switch (eid) {
+	case EID_ILLEGAL_INSN:
+		if (user_mode(regs)) {
+			info.si_signo = SIGILL;
+			info.si_errno = 0;
+			info.si_code = ILL_ILLOPC;
+			info.si_addr = (void *)regs->pc;
+			force_sig_info(SIGBUS, &info, current);
+			return;
+		}
+	default:
+		break;
 	}
 
 	die("Unhandled exception", regs, eid);
