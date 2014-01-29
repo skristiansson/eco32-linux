@@ -27,7 +27,6 @@
 2:							;\
 	subi	$29,$29,PT_SIZE
 
-/* SJK: all of those are not needed to be saved */
 #define SAVE_REGS \
 	stw	$3,$29,PT_GPR29	/* sp is in $3 */	;\
 	stw	$1,$29,PT_GPR1				;\
@@ -168,12 +167,8 @@ ENTRY(exception_handler)
 	/* kernel tlb misses are handled as user tlb misses */
 	subi	$3,$3,1			/* EID = 21: kernel tlb miss */
 	beq	$3,$0,tlbmiss
-	/* page faults */
-	subi	$3,$3,1			/* EID = 22: tlb write */
-	beq	$3,$0,page_fault_handler
-	subi	$3,$3,1			/* EID = 23: tlb invalid */
-	beq	$3,$0,page_fault_handler
-
+	/* fall-through */
+ENTRY(exception_dispatch)
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
 	mvfs	$3,SPR_PSW
@@ -182,19 +177,6 @@ ENTRY(exception_handler)
 	mvts	$3,SPR_PSW
 	ori	$4,$29,0		/* pt_regs */
 	jal	do_exception
-	RESTORE_REGS
-	rfx				/* return to where exception occured */
-
-ENTRY(page_fault_handler)
-	SWITCH_TO_KERNEL_STACK
-	SAVE_REGS
-	mvfs	$3,SPR_PSW
-	andi	$3,$3,0xff
-	ori	$3,$3,KERNEL_PSW
-	mvts	$3,SPR_PSW
-	ori	$4,$29,0
-	mvfs	$5,SPR_TLB_BAD_ADDRESS
-	jal	do_page_fault
 	RESTORE_REGS
 	rfx				/* return to where exception occured */
 

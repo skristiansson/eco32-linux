@@ -11,6 +11,8 @@
 #include <asm/irq.h>
 #include <asm/spr.h>
 
+extern void do_page_fault(struct pt_regs *regs, unsigned long address);
+
 void show_trace(struct task_struct *task, unsigned long *stack)
 {
 	/* SJK TODO */
@@ -42,6 +44,9 @@ void die_if_kernel(const char *str, struct pt_regs *regs, long err)
 	die(str, regs, err);
 }
 
+/*
+ * Dispatch exceptions, traps (syscalls) take a different path.
+ */
 void do_exception(struct pt_regs *regs)
 {
 	siginfo_t info;
@@ -54,6 +59,12 @@ void do_exception(struct pt_regs *regs)
 	}
 
 	switch (eid) {
+	case EID_TLB_MISS:
+	case EID_TLB_WRITE:
+	case EID_TLB_INVALID:
+		do_page_fault(regs, mvfs(SPR_TLB_BAD_ADDRESS));
+		return;
+
 	case EID_ILLEGAL_INSN:
 		if (user_mode(regs)) {
 			info.si_signo = SIGILL;

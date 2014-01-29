@@ -71,7 +71,8 @@ _fault:
 	/* restore $1 */
 	ldw	$3,$0,exception_saved_gpr1
 	ori	$1,$3,0
-	j	page_fault_handler
+	/* let the exception dispatcher call do_page_fault() */
+	j	exception_dispatch
 
 exception_saved_gpr1:
 	.space 4
