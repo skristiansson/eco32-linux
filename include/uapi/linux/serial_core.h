@@ -238,4 +238,11 @@
 /* Tilera TILE-Gx UART */
 #define PORT_TILEGX	106
 
+/* ECO32 reference design UART */
+/*
+ * NOTE: An arbitrary large number have been choosen here to not clash
+ * with potential in-tree serial port additions.
+ */
+#define PORT_ECO32	4096
+
 #endif /* _UAPILINUX_SERIAL_CORE_H */

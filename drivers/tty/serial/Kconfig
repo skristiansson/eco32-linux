@@ -1426,6 +1426,28 @@ config SERIAL_AR933X_NR_UARTS
 	  Set this to the number of serial ports you want the driver
 	  to support.
 
+config SERIAL_ECO32
+	tristate "ECO32 reference design UART support"
+	select SERIAL_CORE
+	help
+	  Driver for the UART present in the ECO32 reference design.
+
+config SERIAL_ECO32_CONSOLE
+	tristate "Eco32 reference design UART console support"
+	depends on SERIAL_ECO32=y
+	select SERIAL_CORE_CONSOLE
+	help
+	  Enable system console on ECO32 UART.
+
+config SERIAL_ECO32_NR_PORTS
+	int "Number of ECO32 UART ports"
+	depends on SERIAL_ECO32
+	range 1 5
+	default "2"
+	help
+	  Set this to the number of serial ports you want the driver
+	  to support.
+
 config SERIAL_EFM32_UART
 	tristate "EFM32 UART/USART port"
 	depends on ARM && (ARCH_EFM32 || COMPILE_TEST)
