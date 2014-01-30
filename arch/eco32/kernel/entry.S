@@ -230,8 +230,7 @@ syscall_handler:
 	stw	$9,$29,20
 	jalr	$25
 	addi	$29,$29,8+16
-
-	j	ret_from_syscall
+	/* fall-through */
 
 ret_from_syscall:
 	/* FIXME: this is by no means complete... */
