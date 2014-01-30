@@ -13,6 +13,13 @@
 
 #define KERNEL_PSW	(SPR_PSW_V)
 
+#define SET_PSW(x) \
+	mvfs	$3,SPR_PSW 		;\
+	/* mask IEN bits */		;\
+	andi	$3,$3,0xff		;\
+	ori	$3,$3,x			;\
+	mvts	$3,SPR_PSW
+
 #define SWITCH_TO_KERNEL_STACK \
 	mvfs	$3,SPR_PSW				;\
 	slri	$3,$3,25	/* PSW_UP */		;\
@@ -171,10 +178,8 @@ ENTRY(exception_handler)
 ENTRY(exception_dispatch)
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
-	mvfs	$3,SPR_PSW
-	andi	$3,$3,0xff
-	ori	$3,$3,KERNEL_PSW
-	mvts	$3,SPR_PSW
+	SET_PSW(KERNEL_PSW)
+
 	ori	$4,$29,0		/* pt_regs */
 	jal	do_exception
 	RESTORE_REGS
@@ -207,10 +212,9 @@ syscall_handler:
 
 	slli	$25,$25,2
 	ldw	$25,$25,sys_call_table
-	mvfs	$3,SPR_PSW
-	andi	$3,$3,0xff
-	ori	$3,$3,(KERNEL_PSW | SPR_PSW_IC)
-	mvts	$3,SPR_PSW
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+
 	/*
 	 * The usage of $8 and $9 as argument registers are only part of
 	 * the syscall ABI and have to be put on the stack before doing the
