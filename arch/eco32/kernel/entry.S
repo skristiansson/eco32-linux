@@ -187,7 +187,17 @@ ENTRY(exception_dispatch)
 
 	ori	$4,$29,0		/* pt_regs */
 	jal	do_exception
-	RESTORE_REGS
+
+	/* loop until _TIF_WORK_MASK is unset */
+1:	SET_PSW(KERNEL_PSW)		/* disable interrupts */
+	ldw	$5,$24,TI_FLAGS
+	andi	$4,$5,_TIF_WORK_MASK
+	beq	$4,$0,2f
+	ori	$4,$29,0		/* pt_regs */
+	jal	do_work_pending
+	j	1b
+
+2:	RESTORE_REGS
 	rfx				/* return to where exception occured */
 
 /*
