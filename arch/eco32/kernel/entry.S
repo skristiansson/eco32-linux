@@ -164,6 +164,10 @@ ENTRY(__switch_to)
 ENTRY(sys_rt_sigreturn)
 	j	.	/* SJK TODO */
 
+/*
+ * Main entry point for all exceptions except user tlb misses.
+ * We arrive here straight with a jump from the exception vector.
+ */
 ENTRY(exception_handler)
 	/* syscalls */
 	mvfs	$3,SPR_PSW
@@ -175,6 +179,7 @@ ENTRY(exception_handler)
 	subi	$3,$3,1			/* EID = 21: kernel tlb miss */
 	beq	$3,$0,tlbmiss
 	/* fall-through */
+
 ENTRY(exception_dispatch)
 	SWITCH_TO_KERNEL_STACK
 	SAVE_REGS
