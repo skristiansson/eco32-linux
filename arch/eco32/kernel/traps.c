@@ -87,9 +87,9 @@ void syscall_debug(struct pt_regs *regs)
 {
 	pr_debug("SJK DEBUG: syscall %d: func = %x, caller = %x, "
 		 "args = %x %x %x %x %x %x\n",
-		 regs->gpr[25], *((u32 *)sys_call_table + regs->gpr[25]),
-		 regs->pc, regs->gpr[4], regs->gpr[5], regs->gpr[6],
-		 regs->gpr[7], regs->gpr[8], regs->gpr[9]);
+		 regs->r2, *((u32 *)sys_call_table + regs->r2),
+		 regs->pc, regs->r4, regs->r5, regs->r6,
+		 regs->r7, regs->r8, regs->r9);
 }
 /* SJK DEBUG END */
 

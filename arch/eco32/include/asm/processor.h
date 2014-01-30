@@ -69,7 +69,7 @@ struct thread_struct {
 
 
 #define KSTK_EIP(tsk)   (task_pt_regs(tsk)->pc)
-#define KSTK_ESP(tsk)   (task_pt_regs(tsk)->gpr[29])
+#define KSTK_ESP(tsk)   (task_pt_regs(tsk)->r29)
 
 
 void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp);

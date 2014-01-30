@@ -60,23 +60,23 @@ void show_regs(struct pt_regs *regs)
 {
 	printk("CPU #: %d\n"
 	       "   PC: %08lx    PSW: %08lx    SP: %08lx\n",
-	       smp_processor_id(), regs->pc, regs->psw, regs->gpr[29]);
+	       smp_processor_id(), regs->pc, regs->psw, regs->r29);
 	printk("GPR00: %08lx GPR01: %08lx GPR02: %08lx GPR03: %08lx\n",
-	       0L, regs->gpr[1], regs->gpr[2], regs->gpr[3]);
+	       0L, regs->r1, regs->r2, regs->r3);
 	printk("GPR04: %08lx GPR05: %08lx GPR06: %08lx GPR07: %08lx\n",
-	       regs->gpr[4], regs->gpr[5], regs->gpr[6], regs->gpr[7]);
+	       regs->r4, regs->r5, regs->r6, regs->r7);
 	printk("GPR08: %08lx GPR09: %08lx GPR10: %08lx GPR11: %08lx\n",
-	       regs->gpr[8], regs->gpr[9], regs->gpr[10], regs->gpr[11]);
+	       regs->r8, regs->r9, regs->r10, regs->r11);
 	printk("GPR12: %08lx GPR13: %08lx GPR14: %08lx GPR15: %08lx\n",
-	       regs->gpr[12], regs->gpr[13], regs->gpr[14], regs->gpr[15]);
+	       regs->r12, regs->r13, regs->r14, regs->r15);
 	printk("GPR16: %08lx GPR17: %08lx GPR18: %08lx GPR19: %08lx\n",
-	       regs->gpr[16], regs->gpr[17], regs->gpr[18], regs->gpr[19]);
+	       regs->r16, regs->r17, regs->r18, regs->r19);
 	printk("GPR20: %08lx GPR21: %08lx GPR22: %08lx GPR23: %08lx\n",
-	       regs->gpr[20], regs->gpr[21], regs->gpr[22], regs->gpr[23]);
+	       regs->r20, regs->r21, regs->r22, regs->r23);
 	printk("GPR24: %08lx GPR25: %08lx GPR26: %08lx GPR27: %08lx\n",
-	       regs->gpr[24], regs->gpr[25], regs->gpr[26], regs->gpr[27]);
+	       regs->r24, regs->r25, regs->r26, regs->r27);
 	printk("GPR28: %08lx GPR29: %08lx GPR30: %08lx GPR31: %08lx\n",
-	       regs->gpr[28], regs->gpr[29], regs->pc, regs->gpr[31]);
+	       regs->r28, regs->r29, regs->pc, regs->r31);
 }
 
 unsigned long thread_saved_pc(struct task_struct *t)
@@ -118,8 +118,8 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 		show_regs(current_pt_regs());
 #endif
 		if (usp)
-			childregs->gpr[29] = usp;
-		childregs->gpr[2] = 0; /* return 0 */
+			childregs->r29 = usp;
+		childregs->r2 = 0; /* return 0 */
 		ti->cpu_context.r31 = (unsigned long)ret_from_fork;
 	}
 
@@ -142,7 +142,7 @@ void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 
 	regs->pc = pc;
 	regs->psw = psw;
-	regs->gpr[29] = sp;
+	regs->r29 = sp;
 }
 
 /* Fill in the fpu structure for a core dump.  */
@@ -150,17 +150,6 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t * fpu)
 {
 	/* eco32 doesn't have any special fpu regs */
 	return 0;
-}
-
-/*
- * Write out registers in core dump format, as defined by the
- * struct user_regs_struct
- */
-void dump_elf_thread(elf_greg_t *dest, struct pt_regs* regs)
-{
-	memcpy(dest, regs->gpr, 32*sizeof(unsigned long));
-	dest[32] = regs->pc;
-	dest[33] = regs->psw;
 }
 
 unsigned long get_wchan(struct task_struct *p)

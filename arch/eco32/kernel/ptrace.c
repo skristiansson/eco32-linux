@@ -25,6 +25,7 @@
 #include <linux/tracehook.h>
 #include <linux/elf.h>
 
+#include <asm/asm-offsets.h>
 #include <asm/thread_info.h>
 #include <asm/segment.h>
 #include <asm/page.h>
@@ -33,15 +34,9 @@
 /*
  * Copy the thread state to a regset that can be interpreted by userspace.
  *
- * It doesn't matter what our internal pt_regs structure looks like.  The
- * important thing is that we export a consistent view of the thread state
- * to userspace.  As such, we need to make sure that the regset remains
- * ABI compatible as defined by the struct user_regs_struct:
- *
  * (Each item is a 32-bit word)
  * $0 = 0 (exported for clarity)
  * 31 GPRS $1-$31
- * PC (Program counter)
  * PSW (Processor Status Word)
  */
 static int genregs_get(struct task_struct *target,
@@ -53,22 +48,14 @@ static int genregs_get(struct task_struct *target,
 	int ret;
 
 	/* $0 */
-	ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf, 0, 4);
-
+	ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
+				       PT_GPR0, PT_GPR1);
 	if (!ret)
 		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-					  regs->gpr+1, 4, 4*32);
-	if (!ret)
-		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-				  &regs->pc, 4*32, 4*33);
-	if (!ret)
-		ret = user_regset_copyout(&pos, &count, &kbuf, &ubuf,
-					  &regs->psw, 4*33, 4*34);
-/* SJK REMOVE?
+					  &regs->r1, PT_GPR1, PT_ORIG_GPR2);
 	if (!ret)
 		ret = user_regset_copyout_zero(&pos, &count, &kbuf, &ubuf,
-					       4*34, -1);
-*/
+					       PT_ORIG_GPR2, -1);
 
 	return ret;
 }
@@ -85,22 +72,20 @@ static int genregs_set(struct task_struct *target,
 	int ret;
 
 	/* ignore $0 */
-	ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf, 0, 4);
+	ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf, PT_GPR0,
+					PT_GPR1);
 	/* $1 - $31 */
 	if (!ret)
 		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-					 regs->gpr+1, 4, 4*32);
-	/* PC */
-	if (!ret)
-		ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
-				 &regs->pc, 4*32, 4*33);
+					 &regs->r1, PT_GPR1, PT_GPR31);
 	/*
-	 * Skip PSW and padding... userspace isn't allowed to changes bits in
+	 * Skip PSW, userspace isn't allowed to changes bits in
 	 * the Supervision register
 	 */
+
 	if (!ret)
 		ret = user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
-						4*33, -1);
+						PT_ORIG_GPR2, -1);
 
 	return ret;
 }
@@ -185,11 +170,11 @@ asmlinkage long do_syscall_trace_enter(struct pt_regs *regs)
 		 */
 		ret = -1L;
 
-	audit_syscall_entry(AUDIT_ARCH_ECO32, regs->gpr[25],
-			    regs->gpr[4], regs->gpr[5],
-			    regs->gpr[6], regs->gpr[7]);
+	audit_syscall_entry(AUDIT_ARCH_ECO32, regs->r2,
+			    regs->r4, regs->r5,
+			    regs->r6, regs->r7);
 
-	return ret ? : regs->gpr[2];
+	return ret ? : regs->r2;
 }
 
 asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)

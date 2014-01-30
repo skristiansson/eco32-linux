@@ -66,6 +66,8 @@
 	stw	$28,$29,PT_GPR28			;\
 	stw	$30,$29,PT_PC				;\
 	stw	$31,$29,PT_GPR31			;\
+	addi	$26,$0,-1				;\
+	stw	$26,$29,PT_ORIG_GPR2			;\
 	mvfs	$26,SPR_PSW				;\
 	stw	$26,$29,PT_PSW
 
@@ -202,7 +204,7 @@ ENTRY(exception_dispatch)
 
 /*
  * Syscall ABI:
- * syscall number in $25
+ * syscall number in $2
  * args in $4-$9
  */
 syscall_handler:
@@ -212,9 +214,12 @@ syscall_handler:
 	 * this should be optimized.
 	 */
 	SAVE_REGS
+	/* Save the syscall number into regs->orig_r2 */
+	stw	$2,$29,PT_ORIG_GPR2
 /* SJK DEBUG */
 	ori	$4,$29,0
 	jal	syscall_debug
+	ldw	$2,$29,PT_GPR2
 	ldw	$4,$29,PT_GPR4
 	ldw	$5,$29,PT_GPR5
 	ldw	$6,$29,PT_GPR6
@@ -225,8 +230,8 @@ syscall_handler:
 	addi	$30,$30,4	/* skip over the trap instruction */
 	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
 
-	slli	$25,$25,2
-	ldw	$25,$25,sys_call_table
+	slli	$2,$2,2
+	ldw	$2,$2,sys_call_table
 	/* enable interrupts */
 	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
 
@@ -238,7 +243,7 @@ syscall_handler:
 	subi	$29,$29,8+16
 	stw	$8,$29,16
 	stw	$9,$29,20
-	jalr	$25
+	jalr	$2
 	addi	$29,$29,8+16
 	/* fall-through */
 

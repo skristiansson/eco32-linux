@@ -20,11 +20,11 @@
 
 #define instruction_pointer(regs)	((regs)->pc)
 #define profile_pc(regs)		instruction_pointer(regs)
-#define user_stack_pointer(regs)	((regs)->gpr[29])
+#define user_stack_pointer(regs)	((regs)->r29)
 
 static inline long regs_return_value(struct pt_regs *regs)
 {
-	return regs->gpr[31];
+	return regs->r2;
 }
 
 #endif /* __ASSEMBLY__ */
