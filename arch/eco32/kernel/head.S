@@ -29,48 +29,47 @@ ENTRY(tlbmiss)
 	 * sequence on exception_saved_gpr1.
 	 * And we have to save $1, since gas will use it when we load
 	 * current_pgd later.
+	 * The register $26 is reserved for OS use, so it can be used as a
+	 * scratch register without saving.
 	 */
-	ori	$3,$1,0
-	stw	$3,$0,exception_saved_gpr1
+	ori	$26,$1,0
+	stw	$26,$0,exception_saved_gpr1
 
 	/* load current_pgd, we use the asm temp reg ($1) as storage */
 	ori	$1,$0,current_pgd
 	ldw	$1,$1,0
-	/*
-	 * $3 (function return high value) isn't used by gcc, so we
-	 * can "safely" use that as a temp reg.
-	 */
-	mvfs	$3,SPR_TLB_ENTRY_HIGH	/* virtual address */
-	slri	$3,$3,PGDIR_SHIFT
-	slli	$3,$3,2			/* word address */
+
+	mvfs	$26,SPR_TLB_ENTRY_HIGH	/* virtual address */
+	slri	$26,$26,PGDIR_SHIFT
+	slli	$26,$26,2		/* word address */
 	/* add offset to pgd */
-	add	$1,$1,$3
+	add	$1,$1,$26
 	ldw	$1,$1,0
 	beq	$1,$0,_fault
 
-	addi	$3,$0,PAGE_MASK
-	and	$1,$1,$3
-	mvfs	$3,SPR_TLB_ENTRY_HIGH
-	slri	$3,$3,PAGE_SHIFT
-	andi	$3,$3,PTRS_PER_PTE-1	/* 1024-1 = 0x3ff */
-	slli	$3,$3,2			/* word address */
-	add	$1,$1,$3
+	addi	$26,$0,PAGE_MASK
+	and	$1,$1,$26
+	mvfs	$26,SPR_TLB_ENTRY_HIGH
+	slri	$26,$26,PAGE_SHIFT
+	andi	$26,$26,PTRS_PER_PTE-1	/* 1024-1 = 0x3ff */
+	slli	$26,$26,2		/* word address */
+	add	$1,$1,$26
 	ldw	$1,$1,0			/* pte */
-	andi	$3,$1,1			/* check present bit */
-	beq	$3,$0,_fault
+	andi	$26,$1,1		/* check present bit */
+	beq	$26,$0,_fault
 	mvts	$1,SPR_TLB_ENTRY_LOW
 	tbwr				/* write out to random tlb */
 
 	/* restore $1 */
-	ldw	$3,$0,exception_saved_gpr1
-	ori	$1,$3,0
+	ldw	$26,$0,exception_saved_gpr1
+	ori	$1,$26,0
 
 	rfx
 
 _fault:
 	/* restore $1 */
-	ldw	$3,$0,exception_saved_gpr1
-	ori	$1,$3,0
+	ldw	$26,$0,exception_saved_gpr1
+	ori	$1,$26,0
 	/* let the exception dispatcher call do_page_fault() */
 	j	exception_dispatch
 

@@ -14,28 +14,28 @@
 #define KERNEL_PSW	(SPR_PSW_V)
 
 #define SET_PSW(x) \
-	mvfs	$3,SPR_PSW 		;\
+	mvfs	$26,SPR_PSW 		;\
 	/* mask IEN bits */		;\
-	andi	$3,$3,0xff		;\
-	ori	$3,$3,x			;\
-	mvts	$3,SPR_PSW
+	andi	$26,$26,0xff		;\
+	ori	$26,$26,x		;\
+	mvts	$26,SPR_PSW
 
 #define SWITCH_TO_KERNEL_STACK \
-	mvfs	$3,SPR_PSW				;\
-	slri	$3,$3,25	/* PSW_UP */		;\
-	andi	$3,$3,1					;\
-	beq	$3,$0,1f	/* check mode */	;\
+	mvfs	$26,SPR_PSW				;\
+	slri	$26,$26,25	/* PSW_UP */		;\
+	andi	$26,$26,1				;\
+	beq	$26,$0,1f	/* check mode */	;\
 	/* user mode */					;\
-	ori	$3,$29,0	/* save old $29 to $3 */;\
+	ori	$26,$29,0	/* save old $29 to $26 */;\
 	addi	$29,$24,THREAD_SIZE /* current_pt_regs() */;\
 	j	2f					;\
 1:	/* kernel mode */				;\
-	ori	$3,$29,0				;\
+	ori	$26,$29,0				;\
 2:							;\
 	subi	$29,$29,PT_SIZE
 
 #define SAVE_REGS \
-	stw	$3,$29,PT_GPR29	/* sp is in $3 */	;\
+	stw	$26,$29,PT_GPR29 /* sp is in $26 */	;\
 	stw	$1,$29,PT_GPR1				;\
 	stw	$2,$29,PT_GPR2				;\
 	stw	$3,$29,PT_GPR3				;\
@@ -66,12 +66,12 @@
 	stw	$28,$29,PT_GPR28			;\
 	stw	$30,$29,PT_PC				;\
 	stw	$31,$29,PT_GPR31			;\
-	mvfs	$3,SPR_PSW				;\
-	stw	$3,$29,PT_PSW
+	mvfs	$26,SPR_PSW				;\
+	stw	$26,$29,PT_PSW
 
 #define RESTORE_REGS \
-	ldw	$3,$29,PT_PSW				;\
-	mvts	$3,SPR_PSW				;\
+	ldw	$26,$29,PT_PSW				;\
+	mvts	$26,SPR_PSW				;\
 	ldw	$1,$29,PT_GPR1				;\
 	ldw	$2,$29,PT_GPR2				;\
 	ldw	$3,$29,PT_GPR3				;\
@@ -170,14 +170,14 @@ ENTRY(sys_rt_sigreturn)
  */
 ENTRY(exception_handler)
 	/* syscalls */
-	mvfs	$3,SPR_PSW
-	slri	$3,$3,SPR_PSW_EID_BIT
-	andi	$3,$3,0x1f
-	subi	$3,$3,20		/* EID = 20: trap */
-	beq	$3,$0,syscall_handler
+	mvfs	$26,SPR_PSW
+	slri	$26,$26,SPR_PSW_EID_BIT
+	andi	$26,$26,0x1f
+	subi	$26,$26,20		/* EID = 20: trap */
+	beq	$26,$0,syscall_handler
 	/* kernel tlb misses are handled as user tlb misses */
-	subi	$3,$3,1			/* EID = 21: kernel tlb miss */
-	beq	$3,$0,tlbmiss
+	subi	$26,$26,1		/* EID = 21: kernel tlb miss */
+	beq	$26,$0,tlbmiss
 	/* fall-through */
 
 ENTRY(exception_dispatch)
@@ -248,10 +248,13 @@ ret_from_syscall:
 	 * This should be the post-exception PSW that we load,
 	 * which means that IC should be 0,
 	 * thus we are implicitly disabling interrupts here.
+	 *
+	 * SJK CHECK THIS... this is probably not true when we are coming
+	 * from fork...
 	 */
-	ldw	$3,$29,PT_PSW
-	mvts	$3,SPR_PSW
-	ldw	$3,$29,PT_GPR3
+	ldw	$26,$29,PT_PSW
+	mvts	$26,SPR_PSW
+	ldw	$26,$29,PT_GPR3
 	ldw	$30,$29,PT_PC
 	ldw	$31,$29,PT_GPR31
 	ldw	$29,$29,PT_GPR29
