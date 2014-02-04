@@ -249,18 +249,18 @@ syscall_handler:
 
 ret_from_syscall:
 	/* FIXME: this is by no means complete... */
-	/*
-	 * This should be the post-exception PSW that we load,
-	 * which means that IC should be 0,
-	 * thus we are implicitly disabling interrupts here.
-	 *
-	 * SJK CHECK THIS... this is probably not true when we are coming
-	 * from fork...
-	 */
+	/* loop until _TIF_WORK_MASK is unset */
+1:	SET_PSW(KERNEL_PSW)		/* disable interrupts */
+	ldw	$5,$24,TI_FLAGS
+	andi	$4,$5,_TIF_WORK_MASK
+	beq	$4,$0,2f
+	ori	$4,$29,0		/* pt_regs */
+	jal	do_work_pending
+	j	1b
+2:
 	ldw	$26,$29,PT_PSW
-	mvts	$26,SPR_PSW
-	ldw	$26,$29,PT_GPR3
 	ldw	$30,$29,PT_PC
 	ldw	$31,$29,PT_GPR31
 	ldw	$29,$29,PT_GPR29
+	mvts	$26,SPR_PSW
 	rfx
