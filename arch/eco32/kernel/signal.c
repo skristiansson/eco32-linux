@@ -8,12 +8,173 @@
 
 #include <linux/sched.h>
 #include <linux/signal.h>
-#include <asm/thread_info.h>
 #include <linux/tracehook.h>
+#include <linux/unistd.h>
+#include <asm/thread_info.h>
+#include <asm/syscall.h>
+#include <asm/uaccess.h>
+#include <asm/ucontext.h>
+
+#define INSN_ORI_R2	0x4c020000
+#define INSN_TRAP	0xb8000000
+
+struct rt_sigframe {
+	struct siginfo info;
+	struct ucontext uc;
+	unsigned long retcode[2];
+};
+
+static inline void __user *align_sigframe(unsigned long sp)
+{
+	return (void __user *)(sp & ~3UL);
+}
+
+static inline void __user *
+get_sigframe(struct ksignal *ksig, struct pt_regs *regs, int framesize)
+{
+	void __user *frame;
+
+	frame = align_sigframe(sigsp(regs->r29, ksig) - framesize);
+
+	/*
+	 * Check that we can actually write to the signal frame.
+	 */
+	if (!access_ok(VERIFY_WRITE, frame, framesize))
+		frame = NULL;
+
+	return frame;
+}
+
+static int setup_sigcontext(struct sigcontext *sc, struct pt_regs *regs)
+{
+	int err = 0;
+
+#define COPY(x)	err |= __put_user(regs->x, &sc->regs.x)
+	COPY(r1);
+	COPY(r2);
+	COPY(r3);
+	COPY(r4);
+	COPY(r5);
+	COPY(r6);
+	COPY(r7);
+	COPY(r8);
+	COPY(r9);
+	COPY(r10);
+	COPY(r11);
+	COPY(r12);
+	COPY(r13);
+	COPY(r14);
+	COPY(r15);
+	COPY(r16);
+	COPY(r17);
+	COPY(r18);
+	COPY(r19);
+	COPY(r20);
+	COPY(r21);
+	COPY(r22);
+	COPY(r23);
+	COPY(r24);
+	COPY(r25);
+	COPY(r26);
+	COPY(r27);
+	COPY(r28);
+	COPY(r29);
+	COPY(r31);
+
+	COPY(psw);
+	COPY(pc);
+
+#undef COPY
+
+	return err;
+}
+
+/*
+ * Setup a frame for a signal. Despite the name, this handles both realtime
+ * signals and normal signals.
+ */
+static int
+setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
+{
+	int err = 0;
+	unsigned long __user *retcode;
+	struct rt_sigframe __user *frame =
+		get_sigframe(ksig, regs, sizeof(*frame));
+
+	if (!frame)
+		return 1;
+
+	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
+
+	/* Create the user context.  */
+	err |= __put_user(0, &frame->uc.uc_flags);
+	err |= __put_user(0, &frame->uc.uc_link);
+	err |= __save_altstack(&frame->uc.uc_stack, regs->r29);
+	err |= setup_sigcontext(&frame->uc.uc_mcontext, regs);
+	err |= __copy_to_user(&frame->uc.uc_sigmask, set, sizeof(*set));
+
+	/* Return from userspace. */
+	retcode = (unsigned long __user *)&frame->retcode;
+	err |= __put_user(INSN_ORI_R2 | __NR_rt_sigreturn,	retcode + 0);
+	err |= __put_user(INSN_TRAP,				retcode + 1);
+
+	regs->pc = (unsigned long)ksig->ka.sa.sa_handler;
+	regs->r31 = (unsigned long)retcode;
+	regs->r29 = (unsigned long)frame;
+
+	/* Setup args. */
+	regs->r4 = ksig->sig;
+	regs->r5 = (unsigned long)&frame->info;
+	regs->r6 = (unsigned long)&frame->uc;
+
+	return err;
+}
+
+static void handle_signal(struct ksignal *ksig, struct pt_regs *regs)
+{
+	sigset_t *oldset = sigmask_to_save();
+	int err;
+
+	/*
+	 * Set up the stack frame
+         */
+	err = setup_rt_frame(ksig, oldset, regs);
+
+	signal_setup_done(err, ksig, 0);
+}
 
 void do_signal(struct pt_regs *regs)
 {
-	BUG(); /* SJK TODO */
+	struct ksignal ksig;
+
+	if (get_signal(&ksig)) {
+		/* Whee! Actually deliver the signal.  */
+		handle_signal(&ksig, regs);
+		return;
+	}
+
+        /* Did we come from a system call? */
+        if (syscall_get_nr(current, regs) >= 0) {
+		/* Restart the system call - no handlers present */
+		switch (syscall_get_error(current, regs)) {
+		case -ERESTARTNOHAND:
+		case -ERESTARTSYS:
+                case -ERESTARTNOINTR:
+			BUG(); /* SJK TODO */
+			break;
+
+                case -ERESTART_RESTARTBLOCK:
+			BUG(); /* SJK TODO */
+			break;
+		}
+	}
+
+	/*
+         * If there's no signal to deliver, we just put the saved sigmask
+         * back.
+         */
+	restore_saved_sigmask();
 }
 
 void do_work_pending(struct pt_regs *regs, unsigned int thread_info_flags)
