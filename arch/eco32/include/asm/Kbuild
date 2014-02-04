@@ -62,6 +62,7 @@ generic-y += swab.h
 generic-y += syscalls.h
 generic-y += termbits.h
 generic-y += termios.h
+generic-y += timex.h
 generic-y += topology.h
 generic-y += trace_clock.h
 generic-y += types.h

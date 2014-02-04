@@ -10,14 +10,6 @@
 
 extern unsigned long loops_per_jiffy;
 
-int read_current_timer(unsigned long *timer_value)
-{
-	return -ENXIO;
-
-	*timer_value = 0; /* SJK FIXME */
-	return 0;
-}
-
 void __delay(unsigned long cycles)
 {
 	cycles_t start = get_cycles();
