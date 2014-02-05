@@ -176,7 +176,7 @@ ENTRY(__switch_to)
 	jr	$31
 
 /*
- * The sigreturn syscall is a special case syscall, which get some special
+ * The sigreturn is a special case syscall, which get some special
  * treatment. We arrive here from syscall_handler by a jalr, but we do not
  * return to where we were called from, instead we take a different path where
  * the full pt_regs context is restored.
@@ -229,8 +229,13 @@ ret_from_exception:
 syscall_handler:
 	SWITCH_TO_KERNEL_STACK
 	/*
-	 * FIXME: it's not necessary to save all regs here,
-	 * this should be optimized.
+	 * FIXME: it's not necessary to save all regs here, this should be
+	 * optimized. More precisely, only the regs we clobber in the syscall
+	 * handler needs to be saved. However, if there are work pending, and
+	 * most importantly work that involves signal handling, a fuller set
+	 * of register needs to be saved (for the switch to userspace
+	 * signal handler). Saving of those registers should be moved out
+	 * of the fast-path syscall handling together with the CHECKWORK macro.
 	 */
 	SAVE_REGS
 	/* Save the syscall number into regs->orig_r2 */
@@ -268,7 +273,6 @@ syscall_handler:
 	/* fall-through */
 
 ret_from_syscall:
-	/* FIXME: this is by no means complete... */
 	CHECK_WORK
 	ldw	$26,$29,PT_PSW
 	ldw	$2,$29,PT_GPR2
