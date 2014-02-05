@@ -24,6 +24,87 @@ struct rt_sigframe {
 	unsigned long retcode[2];
 };
 
+
+static int
+restore_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs)
+{
+	int err = 0;
+
+#define COPY(x) err |= __get_user(regs->x, &sc->regs.x)
+	COPY(r1);
+	COPY(r2);
+	COPY(r3);
+	COPY(r4);
+	COPY(r5);
+	COPY(r6);
+	COPY(r7);
+	COPY(r8);
+	COPY(r9);
+	COPY(r10);
+	COPY(r11);
+	COPY(r12);
+	COPY(r13);
+	COPY(r14);
+	COPY(r15);
+	COPY(r16);
+	COPY(r17);
+	COPY(r18);
+	COPY(r19);
+	COPY(r20);
+	COPY(r21);
+	COPY(r22);
+	COPY(r23);
+	COPY(r24);
+	COPY(r25);
+	COPY(r26);
+	COPY(r27);
+	COPY(r28);
+	COPY(r29);
+	COPY(r31);
+
+	COPY(psw);
+	COPY(pc);
+
+#undef COPY
+	/* make sure we return in user mode */
+	regs->psw |= SPR_PSW_UP;
+
+	return err;
+}
+
+asmlinkage long do_sys_rt_sigreturn(struct pt_regs *regs)
+{
+	struct rt_sigframe __user *frame;
+
+	/* Always make any pending restarted system calls return -EINTR */
+	current_thread_info()->restart_block.fn = do_no_restart_syscall;
+
+	/*
+	 * Since we stacked the signal on a 64-bit boundary,
+	 * then 'sp' should be word aligned here.  If it's
+	 * not, then the user is trying to mess with us.
+	 */
+	if (regs->r29 & 3)
+		goto badframe;
+
+	frame = (struct rt_sigframe __user *)regs->r29;
+
+	if (!access_ok(VERIFY_READ, frame, sizeof (*frame)))
+		goto badframe;
+
+	if (restore_sigcontext(&frame->uc.uc_mcontext, regs))
+		goto badframe;
+
+	if (restore_altstack(&frame->uc.uc_stack))
+		goto badframe;
+
+	return regs->r2;
+
+badframe:
+	force_sig(SIGSEGV, current);
+	return 0;
+}
+
 static inline void __user *align_sigframe(unsigned long sp)
 {
 	return (void __user *)(sp & ~3UL);

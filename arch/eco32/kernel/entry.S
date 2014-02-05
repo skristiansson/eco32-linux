@@ -106,6 +106,18 @@
 	ldw	$31,$29,PT_GPR31			;\
 	ldw	$29,$29,PT_GPR29
 
+#define CHECK_WORK \
+	/* loop until _TIF_WORK_MASK is unset */			;\
+1:									;\
+	SET_PSW(KERNEL_PSW)		/* disable interrupts */	;\
+	ldw	$5,$24,TI_FLAGS						;\
+	andi	$4,$5,_TIF_WORK_MASK					;\
+	beq	$4,$0,2f						;\
+	ori	$4,$29,0		/* pt_regs */			;\
+	jal	do_work_pending						;\
+	j	1b							;\
+2:
+
 ENTRY(ret_from_kernel_thread)
 	jal	schedule_tail
 	ori	$4,$17,0
@@ -163,8 +175,22 @@ ENTRY(__switch_to)
 	ldw	$4,$4,TI_TASK		/* load argument for schedule_tail */
 	jr	$31
 
+/*
+ * The sigreturn syscall is a special case syscall, which get some special
+ * treatment. We arrive here from syscall_handler by a jalr, but we do not
+ * return to where we were called from, instead we take a different path where
+ * the full pt_regs context is restored.
+ */
 ENTRY(sys_rt_sigreturn)
-	j	.	/* SJK TODO */
+	/*
+	 * As we are taking a different path from the normal syscalls,
+	 * restore the stack pointer here.
+	 */
+	addi	$29,$29,8+16
+	ori	$4,$29,0
+	jal	do_sys_rt_sigreturn
+	/* Restore context and return. */
+	j	ret_from_exception
 
 /*
  * Main entry point for all exceptions except user tlb misses.
@@ -190,16 +216,9 @@ ENTRY(exception_dispatch)
 	ori	$4,$29,0		/* pt_regs */
 	jal	do_exception
 
-	/* loop until _TIF_WORK_MASK is unset */
-1:	SET_PSW(KERNEL_PSW)		/* disable interrupts */
-	ldw	$5,$24,TI_FLAGS
-	andi	$4,$5,_TIF_WORK_MASK
-	beq	$4,$0,2f
-	ori	$4,$29,0		/* pt_regs */
-	jal	do_work_pending
-	j	1b
-
-2:	RESTORE_REGS
+ret_from_exception:
+	CHECK_WORK
+	RESTORE_REGS
 	rfx				/* return to where exception occured */
 
 /*
@@ -245,20 +264,14 @@ syscall_handler:
 	stw	$9,$29,20
 	jalr	$2
 	addi	$29,$29,8+16
+	stw	$2,$29,PT_GPR2
 	/* fall-through */
 
 ret_from_syscall:
 	/* FIXME: this is by no means complete... */
-	/* loop until _TIF_WORK_MASK is unset */
-1:	SET_PSW(KERNEL_PSW)		/* disable interrupts */
-	ldw	$5,$24,TI_FLAGS
-	andi	$4,$5,_TIF_WORK_MASK
-	beq	$4,$0,2f
-	ori	$4,$29,0		/* pt_regs */
-	jal	do_work_pending
-	j	1b
-2:
+	CHECK_WORK
 	ldw	$26,$29,PT_PSW
+	ldw	$2,$29,PT_GPR2
 	ldw	$30,$29,PT_PC
 	ldw	$31,$29,PT_GPR31
 	ldw	$29,$29,PT_GPR29
