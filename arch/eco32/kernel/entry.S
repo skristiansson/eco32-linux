@@ -124,7 +124,18 @@ ENTRY(ret_from_kernel_thread)
 
 ENTRY(ret_from_fork)
 	jal	schedule_tail
-	ldw	$2,$29,PT_GPR2		/* load return value */
+	/* load return value */
+	ldw	$2,$29,PT_GPR2
+	/* load callee-saved registers (prepared in copy_thread) */
+	ldw	$16,$29,PT_GPR16
+	ldw	$17,$29,PT_GPR17
+	ldw	$18,$29,PT_GPR18
+	ldw	$19,$29,PT_GPR19
+	ldw	$20,$29,PT_GPR20
+	ldw	$21,$29,PT_GPR21
+	ldw	$22,$29,PT_GPR22
+	ldw	$23,$29,PT_GPR23
+	ldw	$28,$29,PT_GPR28
 	j	ret_from_syscall
 
 ENTRY(__switch_to)
