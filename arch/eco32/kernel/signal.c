@@ -244,11 +244,13 @@ void do_signal(struct pt_regs *regs)
 		case -ERESTARTNOHAND:
 		case -ERESTARTSYS:
                 case -ERESTARTNOINTR:
-			BUG(); /* SJK TODO */
+			regs->r2 = regs->orig_r2;
+			regs->pc -=4;
 			break;
 
                 case -ERESTART_RESTARTBLOCK:
-			BUG(); /* SJK TODO */
+			regs->r2 = __NR_restart_syscall;
+			regs->pc -= 4;
 			break;
 		}
 	}
