@@ -182,6 +182,8 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	struct rt_sigframe __user *frame =
 		get_sigframe(ksig, regs, sizeof(*frame));
 
+	printk("SJK DEBUG: %s: sig = %d\n", __func__, ksig->sig);
+
 	if (!frame)
 		return 1;
 

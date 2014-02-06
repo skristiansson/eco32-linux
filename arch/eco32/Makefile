@@ -21,7 +21,7 @@ OBJCOPYFLAGS    := -O binary -R .note -R .comment -S
 LDFLAGS_vmlinux :=
 LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 
-#SJK KBUILD_CFLAGS	+= -D__linux__ -pipe -ffixed-$24
+#KBUILD_CFLAGS	+= -D__linux__ -pipe -DDEBUG
 KBUILD_CFLAGS	+= -D__linux__ -pipe
 
 head-y 		:= arch/eco32/kernel/head.o

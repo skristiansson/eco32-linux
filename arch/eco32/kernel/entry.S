@@ -197,6 +197,14 @@ ENTRY(sys_rt_sigreturn)
  * We arrive here straight with a jump from the exception vector.
  */
 ENTRY(exception_handler)
+/* SJK DEBUG */
+	mvfs	$26,SPR_PSW
+	slri	$26,$26,SPR_PSW_EID_BIT
+	andi	$26,$26,0x1f
+	subi	$26,$26,25		/* EID = 25: prev. insn. */
+	beq	$26,$0,.
+/* SJK DEBUG END */
+
 	/* syscalls */
 	mvfs	$26,SPR_PSW
 	slri	$26,$26,SPR_PSW_EID_BIT
