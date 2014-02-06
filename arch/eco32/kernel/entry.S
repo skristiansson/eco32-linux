@@ -66,8 +66,6 @@
 	stw	$28,$29,PT_GPR28			;\
 	stw	$30,$29,PT_PC				;\
 	stw	$31,$29,PT_GPR31			;\
-	addi	$26,$0,-1				;\
-	stw	$26,$29,PT_ORIG_GPR2			;\
 	mvfs	$26,SPR_PSW				;\
 	stw	$26,$29,PT_PSW
 
@@ -225,6 +223,8 @@ ENTRY(exception_dispatch)
 	jal	do_exception
 
 ret_from_exception:
+	addi	$26,$0,-1
+	stw	$26,$29,PT_ORIG_GPR2
 	CHECK_WORK
 	RESTORE_REGS
 	rfx				/* return to where exception occured */
