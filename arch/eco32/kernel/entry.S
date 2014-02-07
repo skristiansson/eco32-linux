@@ -300,3 +300,193 @@ ret_from_syscall:
 	ldw	$29,$29,PT_GPR29
 	mvts	$26,SPR_PSW
 	rfx
+
+/*
+ * eco32 lacks dedicated instructions for performing atomic
+ * operations, so it's handled here by a custom syscall.
+ * Implementation here is based on the openrisc one with a
+ * not yet (at the time of writing this) merged patch by Christian Svensson.
+ * http://lists.openrisc.net/pipermail/linux/2014-January/000547.html
+ *
+ * The first argument passed to the syscall is a flag, identifying the
+ * type of operation to be performed.
+ *
+ * Currently, the following variants exists:
+ *
+ * SWAP:
+ *  @flag: 1
+ *  @ptr1:
+ *  @ptr2:
+ * Atomically swap the values in pointers 1 and 2.
+ *
+ * CMPXCHG:
+ *  @flag: 2
+ *  @ptr: mem
+ *  @val1: old
+ *  @val2: new
+ * Writes new to *mem if *mem == old. Returns old *mem.
+ *
+ * XCHG:
+ *  @flag: 3
+ *  @ptr: mem
+ *  @val1: new
+ * Store NEW in *MEM and return the old value.
+ *
+ * ADD:
+ *  @flag: 4
+ *  @ptr: mem
+ *  @val1: val
+ * Add VAL to *MEM and return the old value of *MEM.
+ *
+ * DECPOS:
+ *  @flag: 5
+ *  @ptr: mem
+ * Decrement *MEM if it is > 0, and return the old value.
+ *
+ * AND:
+ *  @flag: 6
+ *  @ptr: mem
+ *  @val1: mask
+ * Atomically *mem &= mask and return the old value of *mem.
+ *
+ * OR:
+ *  @flag: 7
+ *  @ptr: mem
+ *  @val1: mask
+ * Atomically *mem |= mask and return the old value of *mem.
+ *
+ * UMAX: unsigned
+ *  @flag: 8
+ *  @ptr: mem
+ *  @val1: max
+ * If *mem < val, set *mem = max. Returns old value of *mem.
+ *
+ * UMIN: unsigned
+ *  @flag: 9
+ *  @ptr: mem
+ *  @val1: min
+ * If *mem > val, set *mem = min. Returns old value of *mem.
+ */
+ENTRY(sys_eco32_atomic)
+	/* TODO: validate mem ptr(s) */
+	/* TODO: check bounds of argument */
+	ori	$10,$0,atomic_table
+	slli	$4,$4,2
+	add	$10,$10,$4
+	jr	$10
+
+atomic_table:
+	jr $31
+	j _atomic_swap
+	j _atomic_cmpxchg
+	j _atomic_xchg
+	j _atomic_add
+	j _atomic_decpos
+	j _atomic_and
+	j _atomic_or
+	j _atomic_max
+	j _atomic_min
+
+_atomic_swap:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	ldw	$11,$6,0
+	stw	$11,$5,0
+	stw	$10,$6,0
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori	$2,$0,0
+	jr	$31
+
+_atomic_cmpxchg:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	bne 	$10,$6,_atomic_cmpxchg_done
+	stw	$7,$5,0
+_atomic_cmpxchg_done:
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori	$2,$10,0
+	jr	$31
+
+_atomic_xchg:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	stw	$6,$5,0
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori	$2,$10,0
+	jr	$31
+
+_atomic_add:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	add 	$11,$10,$6
+	stw	$11,$5,0
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori	$2,$10,0
+	jr	$31
+
+_atomic_decpos:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	ble	$10,$0,_atomic_decpos_done
+	subi	$11,$10,1
+	stw	$11,$5,0
+_atomic_decpos_done:
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori	$2,$10,0
+	jr	$31
+
+_atomic_and:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	and	$11,$10,$6
+	stw	$11,$5,0
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori 	$2,$10,0
+	jr 	$31
+
+_atomic_or:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	or	$11,$10,$6
+	stw	$11,$5,0
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori 	$2,$10,0
+	jr 	$31
+
+_atomic_max:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	bgeu	$10,$6,_atomic_max_done
+	stw 	$6,$5,0
+_atomic_max_done:
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori 	$2,$10,0
+	jr 	$31
+
+_atomic_min:
+	/* disable interrupts */
+	SET_PSW(KERNEL_PSW)
+	ldw	$10,$5,0
+	bleu	$10,$6,_atomic_min_done
+	stw	$6,$5,0
+_atomic_min_done:
+	/* enable interrupts */
+	SET_PSW(KERNEL_PSW | SPR_PSW_IC)
+	ori 	$2,$10,0
+	jr 	$31

@@ -11,3 +11,6 @@
 #define __ARCH_WANT_SYS_CLONE
 
 #include <asm-generic/unistd.h>
+
+#define __NR_eco32_atomic __NR_arch_specific_syscall
+__SYSCALL(__NR_eco32_atomic, sys_eco32_atomic)
