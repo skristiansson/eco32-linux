@@ -16,7 +16,7 @@
 #define SET_PSW(x) \
 	mvfs	$26,SPR_PSW 		;\
 	/* mask IEN bits */		;\
-	andi	$26,$26,0xff		;\
+	andi	$26,$26,0xffff		;\
 	ori	$26,$26,x		;\
 	mvts	$26,SPR_PSW
 
@@ -70,7 +70,12 @@
 	stw	$26,$29,PT_PSW
 
 #define RESTORE_REGS \
-	ldw	$26,$29,PT_PSW				;\
+	ldw	$10,$29,PT_PSW				;\
+	mvfs	$26,SPR_PSW 				;\
+	/* mask IEN bits */				;\
+	andi	$26,$26,0xffff				;\
+	andi	$10,$10,0xffff0000			;\
+	or	$26,$26,$10				;\
 	mvts	$26,SPR_PSW				;\
 	ldw	$1,$29,PT_GPR1				;\
 	ldw	$2,$29,PT_GPR2				;\
@@ -293,7 +298,12 @@ syscall_handler:
 
 ret_from_syscall:
 	CHECK_WORK
-	ldw	$26,$29,PT_PSW
+	mvfs	$26,SPR_PSW
+	ldw	$2,$29,PT_PSW
+	andi	$26,$26,0xffff
+	andi	$2,$2,0xffff0000
+	or	$26,$26,$2
+
 	ldw	$2,$29,PT_GPR2
 	ldw	$30,$29,PT_PC
 	ldw	$31,$29,PT_GPR31
