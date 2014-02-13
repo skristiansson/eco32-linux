@@ -110,8 +110,11 @@
 	ldw	$29,$29,PT_GPR29
 
 #define CHECK_WORK \
-	/* loop until _TIF_WORK_MASK is unset */			;\
-1:									;\
+	/* skip if !user_mode */ 					;\
+	ldw	$5,$29,PT_PSW						;\
+	andi	$5,$5,SPR_PSW_UP					;\
+	beq	$5,$0,2f						;\
+1:	/* loop until _TIF_WORK_MASK is unset */			;\
 	SET_PSW(KERNEL_PSW)		/* disable interrupts */	;\
 	ldw	$5,$24,TI_FLAGS						;\
 	andi	$4,$5,_TIF_WORK_MASK					;\
@@ -119,7 +122,8 @@
 	ori	$4,$29,0		/* pt_regs */			;\
 	jal	do_work_pending						;\
 	j	1b							;\
-2:
+2:									;\
+	SET_PSW(KERNEL_PSW)		/* disable interrupts */
 
 ENTRY(ret_from_kernel_thread)
 	jal	schedule_tail
