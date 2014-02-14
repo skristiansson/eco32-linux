@@ -94,7 +94,7 @@ void do_page_fault(struct pt_regs *regs, unsigned long address)
 		flags |= FAULT_FLAG_USER;
 
 	mm = tsk->mm;
-	if (!mm)
+	if (in_interrupt() || !mm)
 		goto no_context;
 
 retry:
