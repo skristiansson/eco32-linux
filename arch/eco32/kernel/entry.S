@@ -14,11 +14,11 @@
 #define KERNEL_PSW	(SPR_PSW_V)
 
 #define SET_PSW(x) \
-	mvfs	$26,SPR_PSW 		;\
+	mvfs	$10,SPR_PSW 		;\
 	/* mask IEN bits */		;\
-	andi	$26,$26,0xffff		;\
-	ori	$26,$26,x		;\
-	mvts	$26,SPR_PSW
+	andi	$10,$10,0xffff		;\
+	ori	$10,$10,x		;\
+	mvts	$10,SPR_PSW
 
 #define SWITCH_TO_KERNEL_STACK \
 	mvfs	$26,SPR_PSW				;\
@@ -71,12 +71,12 @@
 
 #define RESTORE_REGS \
 	ldw	$10,$29,PT_PSW				;\
-	mvfs	$26,SPR_PSW 				;\
+	mvfs	$11,SPR_PSW 				;\
 	/* mask IEN bits */				;\
-	andi	$26,$26,0xffff				;\
-	andi	$10,$10,0xffff0000			;\
-	or	$26,$26,$10				;\
-	mvts	$26,SPR_PSW				;\
+	andi	$11,$11,0xffff				;\
+	andi	$10,$10,(0xffff0000 & ~SPR_PSW_IC)	;\
+	or	$11,$11,$10				;\
+	mvts	$11,SPR_PSW				;\
 	ldw	$1,$29,PT_GPR1				;\
 	ldw	$2,$29,PT_GPR2				;\
 	ldw	$3,$29,PT_GPR3				;\
@@ -102,7 +102,6 @@
 	ldw	$23,$29,PT_GPR23			;\
 	ldw	$24,$29,PT_GPR24			;\
 	ldw	$25,$29,PT_GPR25			;\
-	ldw	$26,$29,PT_GPR26			;\
 	ldw	$27,$29,PT_GPR27			;\
 	ldw	$28,$29,PT_GPR28			;\
 	ldw	$30,$29,PT_PC				;\
@@ -243,8 +242,8 @@ ENTRY(exception_dispatch)
 	jal	do_exception
 
 ret_from_exception:
-	addi	$26,$0,-1
-	stw	$26,$29,PT_ORIG_GPR2
+	addi	$2,$0,-1
+	stw	$2,$29,PT_ORIG_GPR2
 	CHECK_WORK
 	RESTORE_REGS
 	rfx				/* return to where exception occured */
@@ -302,17 +301,17 @@ syscall_handler:
 
 ret_from_syscall:
 	CHECK_WORK
-	mvfs	$26,SPR_PSW
+	mvfs	$10,SPR_PSW
 	ldw	$2,$29,PT_PSW
-	andi	$26,$26,0xffff
-	andi	$2,$2,0xffff0000
-	or	$26,$26,$2
+	andi	$10,$10,0xffff
+	andi	$2,$2,(0xffff0000 & ~SPR_PSW_IC)
+	or	$10,$10,$2
 
 	ldw	$2,$29,PT_GPR2
 	ldw	$30,$29,PT_PC
 	ldw	$31,$29,PT_GPR31
 	ldw	$29,$29,PT_GPR29
-	mvts	$26,SPR_PSW
+	mvts	$10,SPR_PSW
 	rfx
 
 /*
