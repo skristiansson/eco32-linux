@@ -267,7 +267,11 @@ syscall_handler:
 	SAVE_REGS
 	/* Save the syscall number into regs->orig_r2 */
 	stw	$2,$29,PT_ORIG_GPR2
-/* SJK DEBUG */
+	/* Skip over the trap instruction. */
+	addi	$30,$30,4
+	stw	$30,$29,PT_PC
+
+#ifdef DEBUG
 	ori	$4,$29,0
 	jal	syscall_debug
 	ldw	$2,$29,PT_GPR2
@@ -277,9 +281,7 @@ syscall_handler:
 	ldw	$7,$29,PT_GPR7
 	ldw	$8,$29,PT_GPR8
 	ldw	$9,$29,PT_GPR9
-/* SJK DEBUG END */
-	addi	$30,$30,4	/* skip over the trap instruction */
-	stw	$30,$29,PT_PC	/* TODO: try to avoid this store */
+#endif
 
 	slli	$2,$2,2
 	ldw	$2,$2,sys_call_table

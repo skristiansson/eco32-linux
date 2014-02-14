@@ -81,27 +81,18 @@ void do_exception(struct pt_regs *regs)
 	die("Unhandled exception", regs, eid);
 }
 
-/* SJK DEBUG */
+#ifdef DEBUG
 extern void *sys_call_table[];
 #include <linux/unistd.h>
 void syscall_debug(struct pt_regs *regs)
 {
-	if (regs->r2 == __NR_rt_sigreturn) {
-		printk("SJK DEBUG: syscall  __NR_rt_sigreturn - %d: func = %x, caller = %x, "
-		       "args = %x %x %x %x %x %x\n",
-		       regs->r2, *((u32 *)sys_call_table + regs->r2),
-		       regs->pc, regs->r4, regs->r5, regs->r6,
-		       regs->r7, regs->r8, regs->r9);
-		return;
-	}
-
-	pr_debug("SJK DEBUG: syscall %d: func = %x, caller = %x, "
+	pr_debug("%s: syscall %d: func = %x, caller = %x, "
 		 "args = %x %x %x %x %x %x\n",
-		 regs->r2, *((u32 *)sys_call_table + regs->r2),
-		 regs->pc, regs->r4, regs->r5, regs->r6,
-		 regs->r7, regs->r8, regs->r9);
+		 __func__, regs->r2, *((u32 *)sys_call_table + regs->r2),
+		 regs->pc - 4, regs->r4, regs->r5, regs->r6, regs->r7, regs->r8,
+		 regs->r9);
 }
-/* SJK DEBUG END */
+#endif
 
 void __init trap_init(void)
 {
