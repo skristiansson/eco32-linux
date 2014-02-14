@@ -100,9 +100,6 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 
 	memset(&ti->cpu_context, 0, sizeof(struct cpu_context));
 
-	pr_debug("SJK DEBUG: %s: %s: childregs = %x, usp = %x\n",
-		 __func__, p->flags & PF_KTHREAD ? "kthread" : "uthread",
-		 childregs, usp);
 	/* Create a kernel thread */
 	if (unlikely(p->flags & PF_KTHREAD)) {
 		memset(childregs, 0, sizeof(struct pt_regs));
@@ -111,12 +108,6 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 		ti->cpu_context.r31 = (unsigned long)ret_from_kernel_thread;
 	} else {
 		*childregs = *current_pt_regs();
-#ifdef DEBUG
-		pr_debug("SJK DEBUG: %s: childregs:\n", __func__);
-		show_regs(childregs);
-		pr_debug("SJK DEBUG: %s: current_pt_regs():\n", __func__);
-		show_regs(current_pt_regs());
-#endif
 		if (usp)
 			childregs->r29 = usp;
 		childregs->r2 = 0; /* return 0 */
@@ -134,11 +125,9 @@ copy_thread(unsigned long clone_flags, unsigned long usp,
 void start_thread(struct pt_regs *regs, unsigned long pc, unsigned long sp)
 {
 	unsigned long psw = mvfs(SPR_PSW) | SPR_PSW_UP;
+
 	set_fs(USER_DS);
 	memset(regs, 0, sizeof(struct pt_regs));
-
-	pr_debug("SJK DEBUG: %s: sp = %x, regs = %x, pc = %x\n",
-		 __func__, sp, regs, pc);
 
 	regs->pc = pc;
 	regs->psw = psw;

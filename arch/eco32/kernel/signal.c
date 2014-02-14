@@ -182,8 +182,6 @@ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
 	struct rt_sigframe __user *frame =
 		get_sigframe(ksig, regs, sizeof(*frame));
 
-	printk("SJK DEBUG: %s: sig = %d\n", __func__, ksig->sig);
-
 	if (!frame)
 		return 1;
 
@@ -264,9 +262,6 @@ void do_signal(struct pt_regs *regs)
 
 void do_work_pending(struct pt_regs *regs, unsigned int thread_info_flags)
 {
-	pr_debug("SJK DEBUG: %s: thread_info_flags = %x\n",
-		 __func__, thread_info_flags);
-
         if (thread_info_flags & _TIF_NEED_RESCHED) {
 		schedule();
 		return;
