@@ -12,6 +12,8 @@
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
 
+extern void die(char *, struct pt_regs *, long);
+
 volatile pgd_t *current_pgd;
 
 static int vmalloc_fault(unsigned long address)
@@ -62,6 +64,7 @@ void do_page_fault(struct pt_regs *regs, unsigned long address)
 	struct task_struct *tsk;
 	struct mm_struct *mm;
 	struct vm_area_struct *vma;
+	siginfo_t info;
 	int fault;
 	unsigned int eid = (regs->psw >> SPR_PSW_EID_BIT) & 0x1f;
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
@@ -158,13 +161,27 @@ no_context:
 	if (fixup_exception(regs))
 		return;
 
-	pr_err("SJK DEBUG: %s: no_context\n", __func__);
-	show_regs(regs);
-	BUG(); /* SJK TODO */
+	die("Oops", regs, address);
+
 out_of_memory:
-	pr_err("SJK DEBUG: %s: out_of_memory\n", __func__);
-	BUG(); /* SJK TODO */
+	up_read(&mm->mmap_sem);
+
+	if (!user_mode(regs))
+		goto no_context;
+
+	pagefault_out_of_memory();
+
+	return;
+
 do_sigbus:
-	pr_err("SJK DEBUG: %s: do_sigbus\n", __func__);
-	BUG(); /* SJK TODO */
+	up_read(&mm->mmap_sem);
+
+	if (!user_mode(regs))
+		goto no_context;
+
+	info.si_signo = SIGBUS;
+	info.si_errno = 0;
+	info.si_code = BUS_ADRERR;
+	info.si_addr = (void __user *)address;
+	force_sig_info(SIGBUS, &info, current);
 }
