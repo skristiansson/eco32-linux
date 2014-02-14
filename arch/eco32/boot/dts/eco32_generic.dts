@@ -20,6 +20,31 @@
 		interrupt-controller;
 	};
 
+       clocks {
+                #address-cells = <1>;
+                #size-cells = <1>;
+                ranges;
+
+                osc1k: osc1k {
+                        #clock-cells = <0>;
+                        compatible = "fixed-clock";
+                        clock-frequency = <1000>;
+                };
+
+                osc50M: osc50M {
+                        #clock-cells = <0>;
+                        compatible = "fixed-clock";
+                        clock-frequency = <50000000>;
+                };
+	};
+
+	timer@30000000 {
+		compatible = "eco32,timer";
+		reg = <0x30000000 0xc>;
+		interrupts = <14>;
+		clocks = <&osc1k>;
+	};
+
 	serial0: serial@30300000 {
 		compatible = "eco32,uart";
 		reg = <0x30300000 0x10>;

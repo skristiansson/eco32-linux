@@ -10,6 +10,10 @@
 #include <linux/seq_file.h>
 #include <linux/bootmem.h>
 #include <linux/memblock.h>
+#include <linux/clocksource.h>
+#include <linux/of.h>
+#include <linux/clk.h>
+#include <linux/clk-provider.h>
 #include <linux/of_platform.h>
 #include <linux/of_fdt.h>
 #include <asm/sections.h>
@@ -83,12 +87,16 @@ void __init setup_arch(char **cmdline_p)
 	paging_init();
 
 	*cmdline_p = cmd_line;
-	/* SJK TODO */
 }
+
+static const __initconst struct of_device_id clk_match[] = {
+	{ .compatible = "fixed-clock", .data = of_fixed_clk_setup, },
+};
 
 void __init time_init(void)
 {
-	/* SJK TODO */
+	of_clk_init(clk_match);
+	clocksource_of_init();
 }
 
 void calibrate_delay(void)

@@ -136,3 +136,9 @@ config VF_PIT_TIMER
 	bool
 	help
 	  Support for Period Interrupt Timer on Freescale Vybrid Family SoCs.
+
+config ECO32_TIMER
+	bool
+	select CLKSRC_OF
+	help
+	  Support for the timer present on the eco32 reference system.
