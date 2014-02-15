@@ -28,10 +28,15 @@ __ioremap(phys_addr_t paddr, unsigned long size, pgprot_t prot)
 		return (void __iomem *)((char *)paddr +
 					ECO32_DIRECT_MAP_VADDR_START);
 
-	BUG(); /* SJK TODO */
+	/* ... and there are no I/O devices in other ranges */
+	return NULL;
 }
 
+/*
+ * Since nothing is ever actually mapped in __ioremap(),
+ * nothing needs to be done here.
+ */
 void iounmap(void *addr)
 {
-	BUG(); /* SJK TODO */
+	return;
 }
