@@ -280,5 +280,7 @@ void do_work_pending(struct pt_regs *regs, unsigned int thread_info_flags)
 		return;
 	}
 
-	BUG(); /* SJK TODO */
+	/* Should never be reached */
+	panic("%s: unknown thread_info_flags 0x%08x\n", __func__,
+	      thread_info_flags);
 }
