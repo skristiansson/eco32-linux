@@ -12,12 +12,20 @@
 #include <asm-generic/mm_hooks.h>
 #include <asm/tlbflush.h>
 
-/* current active pgd - this is similar to other processors pgd
+/*
+ * current active pgd - this is similar to other processors pgd
  * registers like cr3 on the i386
  */
 extern volatile pgd_t *current_pgd;   /* defined in arch/eco32/mm/fault.c */
 
-#define init_new_context(tsk,mm)	0 /* SJK FIXME? */
+static inline int init_new_context(struct task_struct *tsk,
+				   struct mm_struct *mm)
+{
+	mm->context = 0;
+
+	return 0;
+}
+
 static inline  void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 			      struct task_struct *tsk)
 {
