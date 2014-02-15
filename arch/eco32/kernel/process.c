@@ -6,48 +6,28 @@
  * kind, whether express or implied.
  */
 
-/* SJK check if all those includes are really necessary... */
-#define __KERNEL_SYSCALLS__
-#include <stdarg.h>
-
-#include <linux/errno.h>
 #include <linux/sched.h>
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/mm.h>
-#include <linux/stddef.h>
-#include <linux/unistd.h>
 #include <linux/ptrace.h>
-#include <linux/slab.h>
+#include <linux/uaccess.h> /* for USER_DS macros */
 #include <linux/elfcore.h>
-#include <linux/interrupt.h>
-#include <linux/delay.h>
-#include <linux/init_task.h>
-#include <linux/mqueue.h>
-#include <linux/fs.h>
 
-#include <asm/uaccess.h>
-#include <asm/pgtable.h>
-#include <asm/io.h>
-#include <asm/processor.h>
-
-#include <linux/smp.h>
-
-#include <asm/spr.h>
-
+/* TODO: add proper implementations */
 void machine_restart(void)
 {
-	/* SJK TODO */
+	pr_notice("Machine restart...\n");
+	for(;;);
 }
 
 void machine_halt(void)
 {
-	/* SJK TODO */
+	pr_notice("Machine halt...\n");
+	for(;;);
 }
 
 void machine_power_off(void)
 {
-	/* SJK TODO */
+	pr_notice("Machine power off...\n");
+	for(;;);
 }
 
 void (*pm_power_off) (void) = machine_power_off;
