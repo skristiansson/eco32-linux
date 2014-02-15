@@ -87,43 +87,14 @@ struct thread_info {
 #define init_stack		(init_thread_union.stack)
 
 /* how to get the thread information struct from C */
-#if 0 /* SJK FIXME: gcc chokes on this... */
 register struct thread_info *current_thread_info_reg asm("$24");
 #define current_thread_info()   (current_thread_info_reg)
-#else
-static inline struct thread_info *current_thread_info(void)
-{
-	struct thread_info *info;
-	__asm__ __volatile__("ori %0, $24, 0" : "=r"(info));
-
-	return info;
-}
-#endif
-
-/* SJK: DEBUG functions, remove at some point */
-static inline u32 get_r29(void)
-{
-	u32 r29;
-
-	__asm__ __volatile__("ori %0, $29, 0" : "=r"(r29));
-
-	return r29;
-}
-
-static inline u32 get_r28(void)
-{
-	u32 r28;
-
-	__asm__ __volatile__("ori %0, $28, 0" : "=r"(r28));
-
-	return r28;
-}
 
 #define get_thread_info(ti) get_task_struct((ti)->task)
 #define put_thread_info(ti) put_task_struct((ti)->task)
 
 #endif /* !__ASSEMBLY__ */
-/* SJK: the flags blow are copied from OpenRISC, needs revising */
+
 /*
  * thread information flags
  *   these are process state flags that various assembly files may need to
@@ -135,13 +106,12 @@ static inline u32 get_r28(void)
 #define TIF_NOTIFY_RESUME	1	/* resumption notification requested */
 #define TIF_SIGPENDING		2	/* signal pending */
 #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
-#define TIF_SINGLESTEP		4	/* restore singlestep on return to user
-					 * mode
-					 */
+/* restore singlestep on return to user mode */
+#define TIF_SINGLESTEP		4
 #define TIF_SYSCALL_TRACEPOINT  8       /* for ftrace syscall instrumentation */
 #define TIF_RESTORE_SIGMASK     9
-#define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling						 * TIF_NEED_RESCHED
-					 */
+/* true if poll_idle() is polling TIF_NEED_RESCHED */
+#define TIF_POLLING_NRFLAG	16
 #define TIF_MEMDIE              17
 
 #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
@@ -151,10 +121,8 @@ static inline u32 get_r28(void)
 #define _TIF_SINGLESTEP		(1<<TIF_SINGLESTEP)
 #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
 
-
 /* Work to do when returning from interrupt/exception */
-/* For ECO32, this is anything in the LSW other than syscall trace */
-#define _TIF_WORK_MASK (0xff & ~(_TIF_SYSCALL_TRACE|_TIF_SINGLESTEP))
+#define _TIF_WORK_MASK (0xff & ~(_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP))
 
 #endif /* __KERNEL__ */
 
