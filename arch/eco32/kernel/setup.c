@@ -99,17 +99,6 @@ void __init time_init(void)
 	clocksource_of_init();
 }
 
-void calibrate_delay(void)
-{
-	/* Why do we need this function?
-	 * A hevy-weight version exists in
-	 * http://lxr.free-electrons.com/source/init/calibrate.c#L34
-	 * but there it is indicated that calibrate_delay_direct would be used
-	 * if ARCH_HAS_READ_CURRENT_TIMER is defined (which we do define).
-	 */
-	/* SJK TODO */
-}
-
 static int show_cpuinfo(struct seq_file *m, void *v)
 {
 	return seq_printf(m,
