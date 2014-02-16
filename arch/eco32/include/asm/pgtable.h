@@ -120,7 +120,6 @@ extern unsigned long empty_zero_page[];
 	       __FILE__, __LINE__, &(e), pgd_val(e))
 
 /* Encode and de-code a swap entry */
-/* SJK check those */
 #define __swp_type(x)		(((x).val >> 3) & 0x1f)
 #define __swp_offset(entry)	((entry).val >> 8)
 #define __swp_entry(type, offset) \
@@ -128,7 +127,6 @@ extern unsigned long empty_zero_page[];
 #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 #define __swp_entry_to_pte(x)	__pte((x).val)
 
-/* SJK check those */
 #define PTE_FILE_MAX_BITS	28
 #define pte_to_pgoff(x)		(pte_val(x) >> 4)
 #define pgoff_to_pte(x)		__pte(((x) << 4) | _PAGE_FILE)
