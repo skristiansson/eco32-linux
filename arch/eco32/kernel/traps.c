@@ -13,19 +13,27 @@
 
 extern void do_page_fault(struct pt_regs *regs, unsigned long address);
 
-void show_trace(struct task_struct *task, unsigned long *stack)
-{
-	/* SJK TODO */
-}
+static int kstack_depth_to_print = 24;
 
-void show_stack(struct task_struct *task, unsigned long *esp)
+/* TODO: fancy unwinding */
+void show_stack(struct task_struct *task, unsigned long *sp)
 {
-	/* SJK TODO */
-}
+	int i;
+	unsigned long *stack;
 
-void show_trace_task(struct task_struct *tsk)
-{
-	/* SJK TODO */
+	if (sp == 0)
+		sp = (unsigned long*)&sp;
+
+	stack = sp;
+
+	printk("\nStack dump [0x%08lx]:\n", (unsigned long)stack);
+	for (i = 0; i < kstack_depth_to_print; i++) {
+		if (kstack_end(stack))
+			break;
+		if (i && ((i % 4) == 0))
+			printk("\n");
+		printk("%08lx ", *stack++);
+	}
 }
 
 void die(const char *str, struct pt_regs *regs, long err)
@@ -33,6 +41,8 @@ void die(const char *str, struct pt_regs *regs, long err)
 	console_verbose();
 	printk("\n%s#: %04lx\n", str, err & 0xffff);
 	show_regs(regs);
+	if (!user_mode(regs))
+		show_stack(current, (unsigned long*)&regs->r29);
 	do_exit(SIGSEGV);
 }
 
