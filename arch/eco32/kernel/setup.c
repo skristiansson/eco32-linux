@@ -11,6 +11,7 @@
 #include <linux/bootmem.h>
 #include <linux/memblock.h>
 #include <linux/clocksource.h>
+#include <linux/delay.h>
 #include <linux/of.h>
 #include <linux/clk.h>
 #include <linux/clk-provider.h>
@@ -20,11 +21,6 @@
 #include <asm/setup.h>
 
 char __initdata cmd_line[COMMAND_LINE_SIZE] = CONFIG_CMDLINE;
-
-void __init setup_cpuinfo(void)
-{
-	/* SJK TODO */
-}
 
 static int __init eco32_device_probe(void)
 {
@@ -75,8 +71,6 @@ void __init setup_arch(char **cmdline_p)
 #endif
 	unflatten_device_tree();
 
-	setup_cpuinfo();
-
 	init_mm.start_code = (unsigned long)_stext;
 	init_mm.end_code = (unsigned long)_etext;
 	init_mm.end_data = (unsigned long)_edata;
@@ -101,8 +95,15 @@ void __init time_init(void)
 
 static int show_cpuinfo(struct seq_file *m, void *v)
 {
+	int n = (int)v - 1;
+
 	return seq_printf(m,
-			  "cpu\t\t: eco32\n");
+			  "processor\t: %d\n"
+			  "cpu\t\t: eco32\n"
+			  "bogomips\t: %lu.%02lu\n",
+			  n,
+			  loops_per_jiffy/(500000/HZ),
+			  (loops_per_jiffy/(5000/HZ)) % 100);
 }
 
 static void *c_start(struct seq_file *m, loff_t * pos)
