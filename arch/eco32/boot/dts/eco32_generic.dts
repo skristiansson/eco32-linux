@@ -9,6 +9,17 @@
 		bootargs = "console=ttyECO0 debug";
 	};
 
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+	     	cpu@0 {
+			device_type = "cpu";
+			compatible = "eco32,eco32-0.20";
+			reg = <0>;
+		};
+	};
+
 	memory@0 {
 		device_type = "memory";
 		reg = <0x00000000 0x02000000>;
