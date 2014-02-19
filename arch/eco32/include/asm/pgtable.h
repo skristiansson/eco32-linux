@@ -69,6 +69,8 @@ extern void paging_init(void);
 #define _PAGE_WRITE	(1 << 1)	/* Write enabled */
 
 /* Software bit-defines */
+/* NONCACHED is a place holder for a hw bit when eco32 has caches */
+#define _PAGE_NONCACHED	(1 << 2)	/* Cache disabled */
 #define _PAGE_FILE	(1 << 3)	/* 0=swap, 1=pagecache (!present) */
 #define _PAGE_READ	(1 << 4)	/* Read enabled */
 #define _PAGE_ACCESSED	(1 << 5)	/* Accessed */
@@ -108,6 +110,8 @@ extern void paging_init(void);
 #define __S101	PAGE_READONLY_X
 #define __S110	PAGE_SHARED
 #define __S111	PAGE_SHARED_X
+
+#define pgprot_noncached(prot)	__pgprot((pgprot_val(prot) | _PAGE_NONCACHED))
 
 extern unsigned long empty_zero_page[];
 #define ZERO_PAGE(vaddr)	(virt_to_page(empty_zero_page))
