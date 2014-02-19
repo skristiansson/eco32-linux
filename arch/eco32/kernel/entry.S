@@ -262,6 +262,11 @@ syscall_handler:
 	/* Skip over the trap instruction. */
 	addi	$30,$30,4
 	stw	$30,$29,PT_PC
+	/* Check for syscall tracing */
+	ldw	$10,$24,TI_FLAGS
+	andi	$10,$10,_TIF_SYSCALL_TRACE
+	bne	$10,$0,syscall_trace_enter
+syscall_trace_enter_done:
 
 #ifdef DEBUG
 	ori	$4,$29,0
@@ -294,6 +299,12 @@ syscall_handler:
 	/* fall-through */
 
 ret_from_syscall:
+	/* Check for syscall tracing */
+	ldw	$10,$24,TI_FLAGS
+	andi	$10,$10,_TIF_SYSCALL_TRACE
+	bne	$10,$0,syscall_trace_leave
+syscall_trace_leave_done:
+
 	CHECK_WORK
 	mvfs	$10,SPR_PSW
 	ldw	$2,$29,PT_PSW
@@ -307,6 +318,28 @@ ret_from_syscall:
 	ldw	$29,$29,PT_GPR29
 	mvts	$10,SPR_PSW
 	rfx
+
+/* slow paths of syscall */
+syscall_trace_enter:
+	ori	$4,$29,0
+	jal	do_syscall_trace_enter
+
+	/* restore arguments and return reg */
+	ldw	$2,$29,PT_GPR2
+	ldw	$4,$29,PT_GPR4
+	ldw	$5,$29,PT_GPR5
+	ldw	$6,$29,PT_GPR6
+	ldw	$7,$29,PT_GPR7
+	ldw	$8,$29,PT_GPR8
+	ldw	$9,$29,PT_GPR9
+
+	j	syscall_trace_enter_done
+
+syscall_trace_leave:
+	ori	$4,$29,0
+	jal	do_syscall_trace_leave
+
+	j	syscall_trace_leave_done
 
 /*
  * eco32 lacks dedicated instructions for performing atomic
